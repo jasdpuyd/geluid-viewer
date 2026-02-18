@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geluidsdata Visualisatie Tool - Kortrijk</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --bg-panel: #141922;
+            --accent-primary: #00ff88;
+            --accent-secondary: #ff0066;
+            --text-primary: #e4e8f0;
+            --text-secondary: #8892a6;
+            --border-color: #2a3244;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 380px;
+            background: var(--bg-panel);
+            border-right: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1px;
+        }
+
+        .sidebar-header p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .control-section {
+            margin-bottom: 28px;
+        }
+
+        .control-section h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent-primary);
+            margin-bottom: 14px;
+            font-weight: 600;
+        }
+
+        .dataset-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dataset-btn {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 16px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .dataset-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--accent-primary);
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dataset-btn:hover::before,
+        .dataset-btn.active::before {
+            transform: scaleY(1);
+        }
+
+        .dataset-btn:hover {
+            border-color: var(--accent-primary);
+            transform: translateX(4px);
+        }
+
+        .dataset-btn.active {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--accent-primary);
+        }
+
+        .dataset-btn .date {
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .dataset-btn .info {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .file-selector {
+            margin-top: 16px;
+        }
+
+        .file-selector label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .file-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .timeline-control {
+            margin-top: 16px;
+        }
+
+        .timeline-slider {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-dark);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 12px 0;
+        }
+
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.5);
+            transition: all 0.2s;
+        }
+
+        .timeline-slider::-webkit-slider-thumb:hover {
+            width: 22px;
+            height: 22px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        }
+
+        .timeline-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.5);
+        }
+
+        .playback-controls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .control-btn {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .control-btn:hover {
+            background: var(--accent-primary);
+            color: var(--bg-dark);
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn.active {
+            background: var(--accent-primary);
+            color: var(--bg-dark);
+            border-color: var(--accent-primary);
+        }
+
+        .speed-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .speed-btn {
+            flex: 1;
+            background: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .speed-btn:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .speed-btn.active {
+            background: var(--accent-primary);
+            color: var(--bg-dark);
+            border-color: var(--accent-primary);
+        }
+
+        .metadata-display {
+            background: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .metadata-display h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent-secondary);
+            margin-bottom: 12px;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+
+        .meta-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Meta-item waarbij de waarde op een nieuwe regel staat (voor lange waarden) */
+        .meta-item.meta-item--block {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .meta-value {
+            font-weight: 600;
+            color: var(--accent-primary);
+            text-align: right;
+            word-break: break-all;
+        }
+
+        /* Waarde op volledige breedte, links uitgelijnd */
+        .meta-item--block .meta-value {
+            text-align: left;
+            word-break: break-word;
+            line-height: 1.5;
+            padding: 4px 6px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid var(--border-color);
+            width: 100%;
+        }
+
+        .current-time {
+            font-size: 28px;
+            font-weight: 800;
+            text-align: center;
+            color: var(--accent-primary);
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 2px;
+            padding: 12px 0;
+            margin: 8px 0;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+            display: block;
+            background: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            width: 100%;
+        }
+
+        /* Map Container - ALWAYS VISIBLE */
+        .map-container {
+            flex: 1;
+            position: relative;
+            background: #1a1a2e;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* Hover tooltip for dB values */
+        .db-tooltip {
+            position: fixed;
+            background: rgba(20, 25, 34, 0.95);
+            border: 2px solid var(--accent-primary);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-primary);
+            pointer-events: none;
+            z-index: 10000;
+            display: none;
+            font-family: 'Space Mono', monospace;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+        }
+
+        /* Meetpunten styling */
+        .meetpunt-marker {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border: 2px solid var(--accent-primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .meetpunt-label {
+            background: rgba(0, 255, 136, 0.9);
+            color: var(--bg-dark);
+            width: 30px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 800;
+            margin-top: -30px;
+            margin-left: -10px;
+            white-space: nowrap;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(20, 25, 34, 0.95);
+            border: 2px solid var(--border-color);
+            padding: 16px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .legend h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent-primary);
+            margin-bottom: 12px;
+        }
+
+        .legend-gradient {
+            width: 200px;
+            height: 20px;
+            background: linear-gradient(to right, #00ff88, #ffff00, #ff8800, #ff0066);
+            border: 1px solid var(--border-color);
+            margin-bottom: 8px;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 14, 23, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-top: 12px;
+        }
+
+        .error-message {
+            background: rgba(255, 0, 102, 0.1);
+            border: 2px solid var(--accent-secondary);
+            color: var(--accent-secondary);
+            padding: 16px;
+            margin: 12px 0;
+            font-size: 12px;
+            animation: slideIn 0.3s;
+        }
+
+        .success-message {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid var(--accent-primary);
+            color: var(--accent-primary);
+            padding: 16px;
+            margin: 12px 0;
+            font-size: 12px;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.active {
+            background: var(--accent-primary);
+        }
+
+        .status-indicator.inactive {
+            background: var(--text-secondary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .period-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .period-btn {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px 10px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .period-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent-secondary);
+            transform: scaleX(0);
+            transition: transform 0.25s;
+        }
+
+        .period-btn:hover::before,
+        .period-btn.active::before {
+            transform: scaleX(1);
+        }
+
+        .period-btn:hover {
+            border-color: var(--accent-secondary);
+        }
+
+        .period-btn.active {
+            background: rgba(255, 0, 102, 0.12);
+            border-color: var(--accent-secondary);
+        }
+
+        .period-btn .period-name {
+            display: block;
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--accent-secondary);
+            margin-bottom: 3px;
+        }
+
+        .period-btn .period-desc {
+            display: block;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .folder-instruction {
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 10px 12px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            line-height: 1.6;
+        }
+
+        .folder-instruction strong {
+            color: var(--accent-primary);
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            word-break: break-all;
+        }
+
+        .period-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            background: rgba(255, 0, 102, 0.15);
+            border: 1px solid var(--accent-secondary);
+            color: var(--accent-secondary);
+            padding: 2px 8px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        /* Metadata NVT styling */
+        .meta-value.nvt {
+            color: var(--text-secondary);
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        /* Current time period indicator */
+        .time-period-indicator {
+            font-size: 10px;
+            color: var(--accent-secondary);
+            text-align: center;
+            margin-top: 6px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .load-progress-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 5px;
+            font-size: 11px;
+            background: var(--bg-dark);
+            transition: border-color 0.3s;
+        }
+
+        .load-progress-item.loaded {
+            border-color: var(--accent-primary);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .load-progress-item.missing {
+            border-color: var(--accent-secondary);
+            opacity: 0.5;
+        }
+
+        .prog-label {
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .load-progress-item.loaded .prog-label {
+            color: var(--accent-primary);
+        }
+
+        .prog-count {
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .load-progress-item.loaded .prog-count {
+            color: var(--accent-primary);
+        }
+
+        /* Scrollbar styling */
+        .sidebar-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-primary);
+        }
+
+        /* Leaflet overrides om zeker te zijn dat de kaart zichtbaar is */
+        .leaflet-container {
+            background: #1a1a2e !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>SOUND VIEWER</h1>
+                <p>Sound Data Player</p>
+            </div>
+            
+            <div class="sidebar-content">
+                <!-- Stap 1: Dag kiezen -->
+                <div class="control-section">
+                    <h3>Stap 1 — Dag</h3>
+                    <div class="dataset-buttons">
+                        <button class="dataset-btn" data-dataset="1">
+                            <span class="date">29 Augustus</span>
+                            <span class="info">Reeks 1 • 8021 opnames</span>
+                        </button>
+                        <button class="dataset-btn" data-dataset="2">
+                            <span class="date">30 Augustus</span>
+                            <span class="info">Reeks 2 • 26805 opnames</span>
+                        </button>
+                        <button class="dataset-btn" data-dataset="3">
+                            <span class="date">31 Augustus</span>
+                            <span class="info">Reeks 3 • 26361 opnames</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stap 2: Tijdsperiode kiezen (verschijnt na dagkeuze) -->
+                <div class="control-section" id="periodSection" style="display:none;">
+                    <h3>Stap 2 — Tijdsperiode</h3>
+                    <div class="period-buttons">
+                        <button class="period-btn active" data-period="1sec" data-label="1 seconde">
+                            <span class="period-name">1 sec</span>
+                            <span class="period-desc">Ruwe meting</span>
+                        </button>
+                        <button class="period-btn" data-period="1min" data-label="1 minuut">
+                            <span class="period-name">1 min</span>
+                            <span class="period-desc">LAeq 1 minuut</span>
+                        </button>
+                        <button class="period-btn" data-period="5min" data-label="5 minuten">
+                            <span class="period-name">5 min</span>
+                            <span class="period-desc">LAeq 5 minuten</span>
+                        </button>
+                        <button class="period-btn" data-period="15min" data-label="15 minuten">
+                            <span class="period-name">15 min</span>
+                            <span class="period-desc">LAeq 15 minuten</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Current Time Display -->
+                <div class="control-section">
+                    <h3>Huidige Tijd</h3>
+                    <div class="current-time" id="currentTime">--:--:--</div>
+                    <div style="text-align:center; font-size:12px; color: var(--text-secondary); margin-bottom:4px;" id="currentDate">--/--/----</div>
+                    <div class="time-period-indicator" id="timePeriodIndicator">—</div>
+                    <div class="preload-info" id="preloadInfo">Buffer: 0/0</div>
+                </div>
+
+                <!-- Timeline Control -->
+                <div class="control-section">
+                    <h3>Tijdlijn</h3>
+                    <div class="timeline-control">
+                        <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="100" value="0">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-secondary); margin-top: 4px;">
+                            <span id="startTime">00:00:00</span>
+                            <span id="endTime">23:59:59</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Playback Controls -->
+                <div class="control-section">
+                    <h3>Afspeelcontroles</h3>
+                    <div class="playback-controls">
+                        <button class="control-btn" id="prevBtn" title="Vorige">⏮</button>
+                        <button class="control-btn" id="playBtn" title="Afspelen/Pauze">▶</button>
+                        <button class="control-btn" id="pauseBtn" title="Pauze">⏸</button>
+                        <button class="control-btn" id="nextBtn" title="Volgende">⏭</button>
+                    </div>
+                    
+                    <div class="speed-controls">
+                        <button class="speed-btn" data-speed="0.5">0.5x</button>
+                        <button class="speed-btn active" data-speed="1">1x</button>
+                        <button class="speed-btn" data-speed="2">2x</button>
+                        <button class="speed-btn" data-speed="5">5x</button>
+                        <button class="speed-btn" data-speed="10">10x</button>
+                    </div>
+                </div>
+
+                <!-- Metadata Display -->
+                <div class="control-section">
+                    <h3>Metadata</h3>
+                    <div class="metadata-display">
+                        <h4>Huidige Frame</h4>
+                        <div class="meta-item">
+                            <span class="meta-label">Bestandsnaam:</span>
+                            <span class="meta-value" id="metaFilename">-</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Aantal meters:</span>
+                            <span class="meta-value" id="metaAantalMeters">-</span>
+                        </div>
+                        <div class="meta-item meta-item--block">
+                            <span class="meta-label">Actieve meters:</span>
+                            <span class="meta-value" id="metaMetersActief">-</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Frame:</span>
+                            <span class="meta-value" id="metaFrameNumber">-</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">
+                                <span class="status-indicator inactive" id="statusIndicator"></span>
+                                Status:
+                            </span>
+                            <span class="meta-value" id="metaStatus">Klaar</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="errorContainer"></div>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+            
+            <div class="legend">
+                <h4>Geluidsniveau (dB(A))</h4>
+                <div class="legend-gradient"></div>
+                <div class="legend-labels">
+                    <span>30 dB</span>
+                    <span>60 dB</span>
+                    <span>90 dB</span>
+                </div>
+            </div>
+
+            <!-- Hover tooltip for dB values -->
+            <div class="db-tooltip" id="dbTooltip">-- dB(A)</div>
+
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text" id="loadingText">Laden...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JavaScript with integrity hash -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    
+    <!-- GeoTIFF library -->
+    <script src="https://cdn.jsdelivr.net/npm/geotiff@2.0.7/dist-browser/geotiff.js"></script>
+    
+    <!-- Proj4 for coordinate transformation -->
+    <script src="https://cdn.jsdelivr.net/npm/proj4@2.9.0/dist/proj4.js"></script>
+    
+    <script>
+        // Wait for all libraries to load
+        window.addEventListener('load', function() {
+            console.log('=== APPLICATION STARTING ===');
+            console.log('Leaflet loaded:', typeof L !== 'undefined');
+            console.log('GeoTIFF loaded:', typeof GeoTIFF !== 'undefined');
+            console.log('Proj4 loaded:', typeof proj4 !== 'undefined');
+            
+            initializeApp();
+        });
+
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIGURATIE — pas dit aan na het uploaden naar Cloudflare R2
+        // ═══════════════════════════════════════════════════════════════
+        const R2_BASE_URL = 'https://pub-ec0c3469df3e4dac8e1524acce2b51d3.r2.dev';
+        // Mapstructuur op R2:
+        //   <R2_BASE_URL>/reeks1/1sec/index.json
+        //   <R2_BASE_URL>/reeks1/1sec/20240829_080000.tif
+        //   <R2_BASE_URL>/reeks1/1min/index.json
+        //   ... etc.
+        // ═══════════════════════════════════════════════════════════════
+
+        // Application State
+        const state = {
+            // urlsByPeriod: bestandsnamen per periode (strings, geen File-objecten)
+            urlsByPeriod: { '1sec': [], '1min': [], '5min': [], '15min': [] },
+            files: [],                  // actieve lijst ({ url, name }) voor huidige periode
+            currentDataset: null,       // '1' | '2' | '3'
+            currentPeriod: '1sec',
+            currentIndex: 0,
+            isPlaying: false,
+            playbackSpeed: 1,
+            playbackInterval: null,
+            map: null,
+            currentLayer: null,
+            meetpuntenLayer: null,
+            preloadedFrames: new Map(),
+            preloadBuffer: 3,           // kleiner buffer want bestanden komen via netwerk
+            isPreloading: false,
+            currentFrameData: null
+        };
+
+        // Periode configuratie
+        const PERIODES = {
+            '1sec':  { label: '1 seconde',   mapFolder: '1sec',  showMeta: true  },
+            '1min':  { label: '1 minuut',     mapFolder: '1min',  showMeta: false },
+            '5min':  { label: '5 minuten',    mapFolder: '5min',  showMeta: false },
+            '15min': { label: '15 minuten',   mapFolder: '15min', showMeta: false },
+        };
+
+        // Reeks namen (voor instructietekst)
+        const REEKS_INFO = {
+            '1': { naam: 'reeks1', datum: '29 augustus' },
+            '2': { naam: 'reeks2', datum: '30 augustus' },
+            '3': { naam: 'reeks3', datum: '31 augustus' },
+        };
+
+        // Meetpunten data (Lambert72 coördinaten)
+        const MEETPUNTEN = [
+            {x: 71010.6097279278, y: 168965.558979612, id: 7},
+            {x: 71220.2407584436, y: 168967.906480023, id: 6},
+            {x: 71327.2016836172, y: 168760.553152489, id: 2},
+            {x: 71126.4237642312, y: 168726.699899645, id: 8},
+            {x: 71292.6013676153, y: 168937.324912876, id: 1},
+            {x: 71392.4489936047, y: 169123.168637064, id: 3},
+            {x: 71550.7498435999, y: 169060.446805377, id: 4},
+            {x: 71777.7298113531, y: 168927.043583515, id: 5},
+            {x: 71508.7994454624, y: 168986.276527432, id: 0},
+            {x: 71721.1990307927, y: 169089.139871365, id: 9},
+            {x: 71001.5815167521, y: 168547.440893314, id: 10}
+        ];
+
+        // Constants voor Kortrijk
+        const KORTRIJK = {
+            center: [50.825180, 3.252618],
+            zoom: 16,
+            minZoom: 14,
+            maxZoom: 19,
+            bounds: [
+                [50.815, 3.23],  // zuidwest
+                [50.835, 3.29]   // noordoost
+            ]
+        };
+
+        // Initialize the entire application
+        function initializeApp() {
+            console.log('Initializing application...');
+            
+            // Check if Leaflet is available
+            if (typeof L === 'undefined') {
+                console.error('FATAL: Leaflet (L) is not defined!');
+                showError('Leaflet bibliotheek kon niet worden geladen. Controleer je internetverbinding.');
+                return;
+            }
+            
+            initMap();
+            setupEventListeners();
+            updateStatus('Klaar voor laden', false);
+            showSuccess('Applicatie geladen - kaart zichtbaar - selecteer dataset');
+        }
+
+        // Initialize Map - MUST ALWAYS WORK
+        function initMap() {
+            console.log('=== INITIALIZING MAP ===');
+            
+            try {
+                // Create map centered on Kortrijk
+                state.map = L.map('map', {
+                    center: KORTRIJK.center,
+                    zoom: KORTRIJK.zoom,
+                    minZoom: KORTRIJK.minZoom,
+                    maxZoom: KORTRIJK.maxZoom,
+                    maxBounds: KORTRIJK.bounds,
+                    zoomControl: true
+                });
+
+                console.log('Map object created:', state.map);
+
+                // Add standard OpenStreetMap tiles - the background
+                const tileLayer = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                    maxZoom: 19,
+                    opacity: 1.0,
+                    zIndex: 1
+                });
+                
+                tileLayer.addTo(state.map);
+                console.log('Tile layer added to map');
+
+                // Add meetpunten as TOP layer
+                addMeetpunten();
+
+                // Force map to invalidate size after a moment
+                setTimeout(() => {
+                    state.map.invalidateSize();
+                    console.log('Map size invalidated');
+                }, 100);
+
+                console.log('=== MAP INITIALIZED SUCCESSFULLY ===');
+                
+            } catch (error) {
+                console.error('FATAL ERROR initializing map:', error);
+                showError('Kaart kon niet worden geïnitialiseerd: ' + error.message);
+            }
+        }
+
+        // Add meetpunten markers to map
+        function addMeetpunten() {
+            console.log('Adding meetpunten...');
+            
+            // Create a layer group for meetpunten (highest z-index)
+            state.meetpuntenLayer = L.layerGroup();
+            
+            MEETPUNTEN.forEach(punt => {
+                // Convert Lambert72 to WGS84
+                const [lon, lat] = lambert72ToWGS84(punt.x, punt.y);
+                
+                // Create custom icon
+                const icon = L.divIcon({
+                    className: 'meetpunt-marker',
+                    html: `<div class="meetpunt-label">M${punt.id}</div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                });
+                
+                // Create marker
+                const marker = L.marker([lat, lon], {
+                    icon: icon,
+                    zIndexOffset: 1000  // Always on top
+                });
+                
+                marker.addTo(state.meetpuntenLayer);
+                
+                console.log(`Meetpunt ${punt.id} added at ${lat}, ${lon}`);
+            });
+            
+            // Add layer group to map
+            state.meetpuntenLayer.addTo(state.map);
+            console.log('All meetpunten added');
+        }
+
+        // Setup proj4 for Belgian Lambert 72 (EPSG:31370)
+        if (typeof proj4 !== 'undefined') {
+            proj4.defs("EPSG:31370", "+proj=lcc +lat_1=51.16666723333333 +lat_2=49.8333339 +lat_0=90 +lon_0=4.367486666666666 +x_0=150000.013 +y_0=5400088.438 +ellps=intl +towgs84=-106.8686,52.2978,-103.7239,0.3366,-0.457,1.8422,-1.2747 +units=m +no_defs");
+            console.log('Proj4 Lambert72 projection defined');
+        }
+
+        // Convert Lambert72 to WGS84
+        function lambert72ToWGS84(x, y) {
+            if (typeof proj4 === 'undefined') {
+                console.error('Proj4 not available!');
+                return [y, x]; // Fallback - assume already WGS84
+            }
+            return proj4('EPSG:31370', 'EPSG:4326', [x, y]);
+        }
+
+        // Color mapping function - GREEN to RED
+        function getColorForDB(db, minDB = 30, maxDB = 90) {
+            if (isNaN(db) || db === null || db === undefined) {
+                return 'rgba(0, 0, 0, 0)'; // Transparent for invalid
+            }
+            
+            const normalized = Math.max(0, Math.min(1, (db - minDB) / (maxDB - minDB)));
+            
+            let r, g, b;
+            if (normalized < 0.33) {
+                // Green to Yellow
+                const t = normalized / 0.33;
+                r = Math.floor(t * 255);
+                g = 255;
+                b = 0;
+            } else if (normalized < 0.66) {
+                // Yellow to Orange
+                const t = (normalized - 0.33) / 0.33;
+                r = 255;
+                g = Math.floor(255 - t * 119);
+                b = 0;
+            } else {
+                // Orange to Red
+                const t = (normalized - 0.66) / 0.34;
+                r = 255;
+                g = Math.floor(136 - t * 136);
+                b = Math.floor(t * 102);
+            }
+            
+            // REDUCED opacity in the color itself for better map visibility
+            return `rgba(${r}, ${g}, ${b}, 0.5)`;
+        }
+
+        // Lees TIFF tag 42112 (GDAL_METADATA) direct uit de raw bytes
+        // Getest tegen het echte bestand: IFD offset=130294, tag 42112 offset=130808
+        function extractTag42112FromBuffer(arrayBuffer) {
+            try {
+                const dv = new DataView(arrayBuffer);
+                const totalBytes = arrayBuffer.byteLength;
+
+                // Byte order: 0x4949 = little-endian ('II'), 0x4D4D = big-endian ('MM')
+                const byteOrderMark = dv.getUint16(0, true);
+                const le = (byteOrderMark === 0x4949);
+                console.log(`Binary parser: byteOrder=${byteOrderMark.toString(16)}, le=${le}, fileSize=${totalBytes}`);
+
+                // IFD offset staat op bytes 4-7
+                const ifdOffset = dv.getUint32(4, le);
+                console.log(`IFD offset: ${ifdOffset}`);
+
+                if (ifdOffset === 0 || ifdOffset >= totalBytes) {
+                    console.warn('Ongeldig IFD offset:', ifdOffset);
+                    return null;
+                }
+
+                // Aantal entries in dit IFD
+                const numEntries = dv.getUint16(ifdOffset, le);
+                console.log(`Aantal IFD entries: ${numEntries}`);
+
+                // Loop door alle 12-byte IFD entries
+                for (let i = 0; i < numEntries; i++) {
+                    const eo = ifdOffset + 2 + i * 12;  // entry offset
+                    if (eo + 12 > totalBytes) break;
+
+                    const tag   = dv.getUint16(eo,     le);
+                    const type  = dv.getUint16(eo + 2, le);
+                    const count = dv.getUint32(eo + 4, le);
+                    const voff  = dv.getUint32(eo + 8, le);  // value or offset
+
+                    if (tag === 42112) {
+                        console.log(`TAG 42112 GEVONDEN: type=${type}, count=${count}, offset=${voff}`);
+                        
+                        // type=2 is ASCII, count=aantal bytes incl. null terminator
+                        // Als count > 4: voff is een offset naar de data elders in het bestand
+                        const startByte = count > 4 ? voff : eo + 8;
+
+                        if (startByte + count > totalBytes) {
+                            console.warn(`Data offset ${startByte}+${count} valt buiten bestand (${totalBytes} bytes)`);
+                            return null;
+                        }
+
+                        const bytes = new Uint8Array(arrayBuffer, startByte, count);
+                        const text  = new TextDecoder('utf-8').decode(bytes).replace(/\0/g, '');
+                        console.log('Gelezen XML:', text.substring(0, 200));
+                        return text;
+                    }
+                }
+
+                console.warn('Tag 42112 niet gevonden in IFD');
+                return null;
+
+            } catch (e) {
+                console.error('Binary parser fout:', e);
+                return null;
+            }
+        }
+
+        // Process TIF — haalt bestand op via URL (Cloudflare R2)
+        async function processTIFFile(fileObj) {
+            // fileObj = { url: string, name: string }
+            const filename = fileObj.name;
+            console.log(`=== PROCESSING: ${filename} ===`);
+            
+            try {
+                // Haal het TIF-bestand op via fetch
+                const response = await fetch(fileObj.url);
+                if (!response.ok) throw new Error(`HTTP ${response.status} voor ${filename}`);
+                const arrayBuffer = await response.arrayBuffer();
+                console.log('ArrayBuffer geladen, grootte:', arrayBuffer.byteLength);
+                
+                // KRITIEK: kopie voor metadata-parser vóór GeoTIFF de buffer opeist
+                const bufferForMetadata = arrayBuffer.slice(0);
+                
+                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                const image = await tiff.getImage();
+                
+                const data = await image.readRasters();
+                const width = image.getWidth();
+                const height = image.getHeight();
+                console.log(`Afmetingen: ${width}x${height}`);
+                
+                const bbox = image.getBoundingBox();
+                
+                const bottomLeft = lambert72ToWGS84(bbox[0], bbox[1]);
+                const topRight   = lambert72ToWGS84(bbox[2], bbox[3]);
+                
+                const canvas = document.createElement('canvas');
+                canvas.width  = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                const imageData = ctx.createImageData(width, height);
+                const pixels = imageData.data;
+                
+                const rasterData = data[0];
+                let validPixels = 0;
+                
+                for (let i = 0; i < rasterData.length; i++) {
+                    const dbValue = rasterData[i];
+                    const color = getColorForDB(dbValue);
+                    const rgba = color.match(/[\d.]+/g).map(Number);
+                    pixels[i * 4]     = rgba[0];
+                    pixels[i * 4 + 1] = rgba[1];
+                    pixels[i * 4 + 2] = rgba[2];
+                    pixels[i * 4 + 3] = Math.floor(rgba[3] * 255);
+                    if (rgba[3] > 0) validPixels++;
+                }
+                
+                console.log(`Geldige pixels: ${validPixels}/${rasterData.length}`);
+                ctx.putImageData(imageData, 0, 0);
+                
+                // Metadata (GDAL tag 42112) — enkel voor 1sec periode
+                let aantal_meters = '-';
+                let meters_actief = '-';
+
+                if (PERIODES[state.currentPeriod] && PERIODES[state.currentPeriod].showMeta) {
+                    const gdalXml = extractTag42112FromBuffer(bufferForMetadata);
+                    if (gdalXml) {
+                        const items = gdalXml.matchAll(/<Item[^>]+name="([^"]+)"[^>]*>([^<]+)<\/Item>/g);
+                        for (const m of items) {
+                            if (m[1].trim() === 'aantal_meters') aantal_meters = m[2].trim();
+                            if (m[1].trim() === 'meters_actief') meters_actief = m[2].trim();
+                        }
+                    }
+                    document.getElementById('metaAantalMeters').textContent = aantal_meters;
+                    document.getElementById('metaMetersActief').textContent  = meters_actief;
+                }
+                
+                const bounds = [[bottomLeft[1], bottomLeft[0]], [topRight[1], topRight[0]]];
+                
+                return {
+                    dataURL: canvas.toDataURL('image/png'),
+                    bounds, metadata: { aantal_meters, meters_actief },
+                    filename, rasterData, width, height, bbox
+                };
+                
+            } catch (error) {
+                console.error('ERROR processTIFFile:', error);
+                throw error;
+            }
+        }
+
+        // Display processed frame on map
+        function displayFrame(frameData) {
+            console.log('Displaying frame:', frameData.filename);
+            
+            try {
+                // Remove old overlay
+                if (state.currentLayer) {
+                    state.map.removeLayer(state.currentLayer);
+                }
+                
+                // Store current frame data for hover function
+                state.currentFrameData = frameData;
+                
+                // Add new overlay with HIGH TRANSPARENCY 
+                // zIndex 100 = above base map (1) but below meetpunten (1000+)
+                state.currentLayer = L.imageOverlay(frameData.dataURL, frameData.bounds, {
+                    opacity: 0.75,
+                    interactive: false,
+                    className: 'geluid-overlay',
+                    zIndex: 100
+                }).addTo(state.map);
+                
+                console.log('Overlay added to map (z-index: 100)');
+                
+                // Ensure meetpunten stay on top
+                if (state.meetpuntenLayer) {
+                    state.meetpuntenLayer.bringToFront();
+                }
+                
+                // Update metadata display
+                updateMetadata(frameData.filename, frameData.metadata);
+                
+            } catch (error) {
+                console.error('ERROR displaying frame:', error);
+                showError('Fout bij weergeven: ' + error.message);
+            }
+        }
+
+        // Preload upcoming frames
+        async function preloadFrames() {
+            if (state.isPreloading || state.files.length === 0) return;
+            
+            state.isPreloading = true;
+            
+            try {
+                const startIdx = state.currentIndex;
+                const endIdx = Math.min(startIdx + state.preloadBuffer, state.files.length);
+                
+                for (let i = startIdx; i < endIdx; i++) {
+                    if (state.preloadedFrames.has(i)) continue;
+                    
+                    const file = state.files[i];
+                    const frameData = await processTIFFile(file);
+                    state.preloadedFrames.set(i, frameData);
+                    
+                    updatePreloadInfo();
+                }
+            } catch (error) {
+                console.error('Error preloading:', error);
+            }
+            
+            state.isPreloading = false;
+        }
+
+        // Load and display current frame
+        async function loadCurrentFrame() {
+            if (state.files.length === 0) return;
+            
+            // Update tijd ONMIDDELLIJK — dit werkt altijd, ook bij slider-gebruik
+            updateTimeFromFile(state.files[state.currentIndex]);
+            
+            try {
+                showLoading(true, 'Frame laden...');
+                updateStatus('Laden...', true);
+                
+                let frameData;
+                
+                // Check cache
+                if (state.preloadedFrames.has(state.currentIndex)) {
+                    console.log('Using cached frame');
+                    frameData = state.preloadedFrames.get(state.currentIndex);
+                } else {
+                    console.log('Processing new frame');
+                    const file = state.files[state.currentIndex];
+                    frameData = await processTIFFile(file);
+                    state.preloadedFrames.set(state.currentIndex, frameData);
+                }
+                
+                displayFrame(frameData);
+                updateTimeline();
+                
+                showLoading(false);
+                updateStatus(state.isPlaying ? 'Afspelen' : 'Gepauzeerd', state.isPlaying);
+                
+                // Cleanup and preload
+                cleanupCache();
+                setTimeout(() => preloadFrames(), 100);
+                
+            } catch (error) {
+                console.error('ERROR loading frame:', error);
+                showError('Fout bij laden: ' + error.message);
+                showLoading(false);
+                updateStatus('Fout', false);
+            }
+        }
+
+        // Cleanup old cached frames
+        function cleanupCache() {
+            const keepRange = state.preloadBuffer * 2;
+            const minIdx = Math.max(0, state.currentIndex - keepRange);
+            const maxIdx = Math.min(state.files.length, state.currentIndex + keepRange);
+            
+            for (let [idx, _] of state.preloadedFrames) {
+                if (idx < minIdx || idx > maxIdx) {
+                    state.preloadedFrames.delete(idx);
+                }
+            }
+            
+            updatePreloadInfo();
+        }
+
+        // Update preload info
+        function updatePreloadInfo() {
+            const cached = state.preloadedFrames.size;
+            const total = state.files.length;
+            document.getElementById('preloadInfo').textContent = `Buffer: ${cached}/${total}`;
+        }
+
+        // Update metadata display
+        function updateMetadata(filename, metadata) {
+            const basename = (filename || '').split('/').pop().split('\\').pop();
+            const showMeta = PERIODES[state.currentPeriod] && PERIODES[state.currentPeriod].showMeta;
+
+            if (showMeta) {
+                // 1 seconde: toon gewone metadata
+                const fnEl = document.getElementById('metaFilename');
+                fnEl.textContent = basename || '-';
+                fnEl.classList.remove('nvt');
+
+                const amEl = document.getElementById('metaAantalMeters');
+                amEl.textContent = metadata.aantal_meters;
+                amEl.classList.remove('nvt');
+
+                const maEl = document.getElementById('metaMetersActief');
+                maEl.textContent = metadata.meters_actief;
+                maEl.classList.remove('nvt');
+            } else {
+                // Geaggregeerde periodes: NVT
+                ['metaFilename', 'metaAantalMeters', 'metaMetersActief'].forEach(id => {
+                    const el = document.getElementById(id);
+                    el.textContent = 'NVT';
+                    el.classList.add('nvt');
+                });
+            }
+
+            // Frame-nummer is altijd zichtbaar
+            const fnrEl = document.getElementById('metaFrameNumber');
+            fnrEl.textContent = `${state.currentIndex + 1} / ${state.files.length}`;
+            fnrEl.classList.remove('nvt');
+
+            // Tijdstip altijd bijwerken
+            const match = basename.match(/(\d{8})_(\d{6})/);
+            if (match) {
+                const d = match[1], t = match[2];
+                document.getElementById('currentTime').textContent = `${t.slice(0,2)}:${t.slice(2,4)}:${t.slice(4,6)}`;
+                document.getElementById('currentDate').textContent = `${d.slice(6,8)}/${d.slice(4,6)}/${d.slice(0,4)}`;
+            }
+        }
+
+        // Show/hide loading overlay
+        function showLoading(show, text = 'Laden...') {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.className = show ? 'loading-overlay show' : 'loading-overlay';
+            document.getElementById('loadingText').textContent = text;
+        }
+
+        // Update status
+        function updateStatus(text, active) {
+            document.getElementById('metaStatus').textContent = text;
+            document.getElementById('statusIndicator').className = `status-indicator ${active ? 'active' : 'inactive'}`;
+        }
+
+        // Show messages
+        function showMessage(message, isError = false) {
+            const container = document.getElementById('errorContainer');
+            const div = document.createElement('div');
+            div.className = isError ? 'error-message' : 'success-message';
+            div.textContent = message;
+            container.appendChild(div);
+            
+            setTimeout(() => div.remove(), 5000);
+        }
+
+        function showError(msg) {
+            console.error(msg);
+            showMessage(msg, true);
+        }
+
+        function showSuccess(msg) {
+            console.log(msg);
+            showMessage(msg, false);
+        }
+
+        // Playback controls
+        function nextFrame() {
+            if (state.currentIndex < state.files.length - 1) {
+                state.currentIndex++;
+                updateTimeFromFile(state.files[state.currentIndex]);
+                loadCurrentFrame();
+            } else if (state.isPlaying) {
+                stopPlayback();
+                showSuccess('Einde bereikt');
+            }
+        }
+
+        function prevFrame() {
+            if (state.currentIndex > 0) {
+                state.currentIndex--;
+                updateTimeFromFile(state.files[state.currentIndex]);
+                loadCurrentFrame();
+            }
+        }
+
+        function startPlayback() {
+            if (state.files.length === 0) {
+                showError('Geen data geladen');
+                return;
+            }
+            state.isPlaying = true;
+            document.getElementById('playBtn').classList.add('active');
+            updateStatus('Afspelen', true);
+            const interval = 1000 / state.playbackSpeed;
+            state.playbackInterval = setInterval(nextFrame, interval);
+            preloadFrames();
+        }
+
+        function stopPlayback() {
+            state.isPlaying = false;
+            document.getElementById('playBtn').classList.remove('active');
+            updateStatus('Gepauzeerd', false);
+            if (state.playbackInterval) {
+                clearInterval(state.playbackInterval);
+                state.playbackInterval = null;
+            }
+        }
+
+        function updateTimeline() {
+            const slider = document.getElementById('timelineSlider');
+            slider.max   = state.files.length - 1;
+            slider.value = state.currentIndex;
+            if (state.files.length > 0) {
+                const parseTime = (name) => {
+                    const m = name.match(/\d{8}_(\d{6})/);
+                    return m ? `${m[1].substring(0,2)}:${m[1].substring(2,4)}:${m[1].substring(4,6)}` : '00:00:00';
+                };
+                document.getElementById('startTime').textContent = parseTime(state.files[0].name);
+                document.getElementById('endTime').textContent   = parseTime(state.files[state.files.length - 1].name);
+            }
+        }
+
+        // Setup all event listeners
+        function setupEventListeners() {
+            // ── HOVER dB tooltip ─────────────────────────────────────────
+            const mapElement = document.getElementById('map');
+            const tooltip = document.getElementById('dbTooltip');
+
+            mapElement.addEventListener('mousemove', (e) => {
+                if (!state.currentFrameData) { tooltip.style.display = 'none'; return; }
+                const rect = mapElement.getBoundingClientRect();
+                const point = state.map.containerPointToLatLng([e.clientX - rect.left, e.clientY - rect.top]);
+                const lambert = proj4('EPSG:4326', 'EPSG:31370', [point.lng, point.lat]);
+                const bbox = state.currentFrameData.bbox;
+                if (lambert[0] < bbox[0] || lambert[0] > bbox[2] || lambert[1] < bbox[1] || lambert[1] > bbox[3]) {
+                    tooltip.style.display = 'none'; return;
+                }
+                const px = Math.floor((lambert[0] - bbox[0]) / (bbox[2] - bbox[0]) * state.currentFrameData.width);
+                const py = Math.floor((bbox[3] - lambert[1]) / (bbox[3] - bbox[1]) * state.currentFrameData.height);
+                if (px >= 0 && px < state.currentFrameData.width && py >= 0 && py < state.currentFrameData.height) {
+                    const db = state.currentFrameData.rasterData[py * state.currentFrameData.width + px];
+                    if (!isNaN(db) && db > 0) {
+                        tooltip.textContent = `${Math.round(db)} dB(A)`;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (e.clientX + 15) + 'px';
+                        tooltip.style.top  = (e.clientY + 15) + 'px';
+                    } else { tooltip.style.display = 'none'; }
+                } else { tooltip.style.display = 'none'; }
+            });
+            mapElement.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+            // ── DAG-knoppen ───────────────────────────────────────────────
+            document.querySelectorAll('.dataset-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    document.querySelectorAll('.dataset-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.currentDataset = btn.dataset.dataset;
+
+                    fullReset();
+
+                    // Toon periode-sectie; standaard 1sec
+                    document.getElementById('periodSection').style.display = '';
+                    state.currentPeriod = '1sec';
+                    document.querySelectorAll('.period-btn').forEach(b => {
+                        b.classList.toggle('active', b.dataset.period === '1sec');
+                    });
+
+                    // Laad index.json voor alle periodes van deze reeks
+                    showSuccess(`${btn.querySelector('.date').textContent} geladen — indexen ophalen...`);
+                    await loadAllIndexes();
+
+                    // Start meteen met 1sec
+                    await switchPeriod('1sec');
+                });
+            });
+
+            // ── PERIODE-knoppen ───────────────────────────────────────────
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const p = btn.dataset.period;
+                    if (p === state.currentPeriod) return;
+                    if (!state.urlsByPeriod[p] || state.urlsByPeriod[p].length === 0) {
+                        showError(`Geen bestanden voor periode "${btn.dataset.label}"`);
+                        return;
+                    }
+                    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    await switchPeriod(p);
+                    showSuccess(`Periode: ${btn.dataset.label}`);
+                });
+            });
+
+            // ── PLAYBACK ──────────────────────────────────────────────────
+            document.getElementById('playBtn').addEventListener('click', () => {
+                state.isPlaying ? stopPlayback() : startPlayback();
+            });
+            document.getElementById('pauseBtn').addEventListener('click', stopPlayback);
+            document.getElementById('nextBtn').addEventListener('click', () => { stopPlayback(); nextFrame(); });
+            document.getElementById('prevBtn').addEventListener('click', () => { stopPlayback(); prevFrame(); });
+
+            // ── TIJDLIJN ──────────────────────────────────────────────────
+            document.getElementById('timelineSlider').addEventListener('input', (e) => {
+                stopPlayback();
+                state.currentIndex = parseInt(e.target.value);
+                updateTimeFromFile(state.files[state.currentIndex]);
+                loadCurrentFrame();
+            });
+
+            // ── SNELHEID ──────────────────────────────────────────────────
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.playbackSpeed = parseFloat(btn.dataset.speed);
+                    if (state.isPlaying) { stopPlayback(); startPlayback(); }
+                    showSuccess(`Snelheid: ${state.playbackSpeed}x`);
+                });
+            });
+
+            // ── TOETSENBORD ───────────────────────────────────────────────
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space')           { e.preventDefault(); state.isPlaying ? stopPlayback() : startPlayback(); }
+                else if (e.code === 'ArrowRight') { e.preventDefault(); stopPlayback(); nextFrame(); }
+                else if (e.code === 'ArrowLeft')  { e.preventDefault(); stopPlayback(); prevFrame(); }
+            });
+        }
+
+        // ── INDEX.JSON OPHALEN ────────────────────────────────────────────
+        // index.json per submap bevat een gesorteerde lijst van bestandsnamen:
+        // ["20240829_080000.tif", "20240829_080001.tif", ...]
+        async function loadAllIndexes() {
+            const reeks = REEKS_INFO[state.currentDataset].naam;
+            const periodes = ['1sec', '1min', '5min', '15min'];
+
+            showLoading(true, 'Bestandslijsten ophalen...');
+
+            await Promise.all(periodes.map(async (periode) => {
+                const indexUrl = `${R2_BASE_URL}/${reeks}/${periode}/index.json`;
+                try {
+                    const resp = await fetch(indexUrl);
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const names = await resp.json();
+                    // Bouw volledige URL-objecten
+                    state.urlsByPeriod[periode] = names.map(name => ({
+                        name,
+                        url: `${R2_BASE_URL}/${reeks}/${periode}/${name}`
+                    }));
+                    console.log(`Index ${periode}: ${names.length} bestanden`);
+                } catch (err) {
+                    console.warn(`Index niet gevonden voor ${periode}:`, err);
+                    state.urlsByPeriod[periode] = [];
+                }
+            }));
+
+            showLoading(false);
+        }
+
+        // ── PERIODE WISSELEN ──────────────────────────────────────────────
+        async function switchPeriod(period) {
+            stopPlayback();
+            state.currentPeriod = period;
+            state.files = state.urlsByPeriod[period];
+            state.currentIndex = 0;
+            state.preloadedFrames.clear();
+
+            updatePeriodIndicator();
+            updateMetadataVisibility();
+            updateTimeline();
+
+            if (state.currentLayer) {
+                state.map.removeLayer(state.currentLayer);
+                state.currentLayer = null;
+                state.currentFrameData = null;
+            }
+
+            if (state.files.length > 0) {
+                updateTimeFromFile(state.files[0]);
+                await loadCurrentFrame();
+            }
+        }
+
+        // ── HULPFUNCTIES ──────────────────────────────────────────────────
+
+        function updatePeriodIndicator() {
+            const el = document.getElementById('timePeriodIndicator');
+            el.textContent = (state.currentPeriod && PERIODES[state.currentPeriod])
+                ? `Periode: ${PERIODES[state.currentPeriod].label}` : '—';
+        }
+
+        function updateMetadataVisibility() {
+            const showMeta = PERIODES[state.currentPeriod] && PERIODES[state.currentPeriod].showMeta;
+            if (!showMeta) {
+                ['metaFilename', 'metaAantalMeters', 'metaMetersActief'].forEach(id => {
+                    const el = document.getElementById(id);
+                    el.textContent = 'NVT';
+                    el.classList.add('nvt');
+                });
+            }
+        }
+
+        function fullReset() {
+            stopPlayback();
+            state.urlsByPeriod = { '1sec': [], '1min': [], '5min': [], '15min': [] };
+            state.files = [];
+            state.currentIndex = 0;
+            state.preloadedFrames.clear();
+            state.currentPeriod = '1sec';
+            document.getElementById('timelineSlider').value = 0;
+            document.getElementById('preloadInfo').textContent = 'Buffer: 0/0';
+            document.getElementById('currentTime').textContent = '--:--:--';
+            document.getElementById('currentDate').textContent = '--/--/----';
+            document.getElementById('timePeriodIndicator').textContent = '—';
+            if (state.currentLayer) {
+                state.map.removeLayer(state.currentLayer);
+                state.currentLayer = null;
+                state.currentFrameData = null;
+            }
+        }
+
+        // Hulpfunctie: update tijd+datum vanuit { name } object
+        function updateTimeFromFile(fileObj) {
+            const basename = (fileObj.name || '').split('/').pop();
+            const match = basename.match(/(\d{8})_(\d{6})/);
+            if (match) {
+                const d = match[1], t = match[2];
+                document.getElementById('currentTime').textContent =
+                    `${t.substring(0,2)}:${t.substring(2,4)}:${t.substring(4,6)}`;
+                document.getElementById('currentDate').textContent =
+                    `${d.substring(6,8)}/${d.substring(4,6)}/${d.substring(0,4)}`;
+            }
+        }
+
+    </script>
+</body>
+</html>
