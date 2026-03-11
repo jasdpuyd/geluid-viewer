@@ -928,7 +928,7 @@
             currentLayer: null,
             meetpuntenLayer: null,
             preloadedFrames: new Map(),
-            preloadBuffer: 3,           // kleiner buffer want bestanden komen via netwerk
+            preloadBuffer: 10,           // kleiner buffer want bestanden komen via netwerk
             isPreloading: false,
             currentFrameData: null
         };
@@ -1305,29 +1305,31 @@
             }
         }
 
-        // Preload upcoming frames
+// Preload upcoming frames — laadt continu frames voor op de achtergrond
         async function preloadFrames() {
             if (state.isPreloading || state.files.length === 0) return;
-            
             state.isPreloading = true;
-            
             try {
                 const startIdx = state.currentIndex;
                 const endIdx = Math.min(startIdx + state.preloadBuffer, state.files.length);
-                
                 for (let i = startIdx; i < endIdx; i++) {
                     if (state.preloadedFrames.has(i)) continue;
-                    
                     const file = state.files[i];
                     const frameData = await processTIFFile(file);
                     state.preloadedFrames.set(i, frameData);
-                    
                     updatePreloadInfo();
+                }
+                // Blijf preloaden zolang er afgespeeld wordt
+                if (state.isPlaying) {
+                    setTimeout(() => {
+                        state.isPreloading = false;
+                        preloadFrames();
+                    }, 50);
+                    return;
                 }
             } catch (error) {
                 console.error('Error preloading:', error);
             }
-            
             state.isPreloading = false;
         }
 
@@ -1490,11 +1492,63 @@
             }
         }
 
-        function startPlayback() {
+function startPlayback() {
             if (state.files.length === 0) {
                 showError('Geen data geladen');
                 return;
             }
+
+            // Bereken hoeveel frames we vooraf willen bufferen op basis van snelheid
+            // Bij 5x = elke 200ms een frame, bij 10x = elke 100ms
+            // We willen minstens 3 seconden aan frames klaarstaan
+            const framesNeeded = Math.min(
+                Math.ceil(state.playbackSpeed * 3),
+                state.preloadBuffer
+            );
+
+            const cachedAhead = countCachedAhead();
+
+            if (cachedAhead < framesNeeded) {
+                // Nog niet genoeg gebufferd — laad eerst, dan start
+                showLoading(true, `Bufferen... (${cachedAhead}/${framesNeeded} frames)`);
+                updateStatus('Bufferen...', true);
+
+                preloadUntilReady(framesNeeded, () => {
+                    showLoading(false);
+                    doStartPlayback();
+                });
+            } else {
+                doStartPlayback();
+            }
+        }
+
+        function countCachedAhead() {
+            let count = 0;
+            for (let i = state.currentIndex; i < Math.min(state.currentIndex + state.preloadBuffer, state.files.length); i++) {
+                if (state.preloadedFrames.has(i)) count++;
+                else break; // stop bij eerste gat
+            }
+            return count;
+        }
+
+        async function preloadUntilReady(framesNeeded, callback) {
+            const endIdx = Math.min(state.currentIndex + framesNeeded, state.files.length);
+            for (let i = state.currentIndex; i < endIdx; i++) {
+                if (state.preloadedFrames.has(i)) continue;
+                try {
+                    const frameData = await processTIFFile(state.files[i]);
+                    state.preloadedFrames.set(i, frameData);
+                    updatePreloadInfo();
+                    const cached = countCachedAhead();
+                    showLoading(true, `Bufferen... (${cached}/${framesNeeded} frames)`);
+                } catch (e) {
+                    console.error('Preload fout:', e);
+                }
+            }
+            callback();
+        }
+
+        function doStartPlayback() {
             state.isPlaying = true;
             document.getElementById('playBtn').classList.add('active');
             updateStatus('Afspelen', true);
