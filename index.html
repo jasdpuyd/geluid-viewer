@@ -425,7 +425,7 @@
             background: rgba(20, 25, 34, 0.95);
             border: 2px solid var(--border-color);
             padding: 16px;
-            z-index: 1000;
+            z-index: 999;
             backdrop-filter: blur(10px);
         }
 
@@ -440,7 +440,6 @@
         .legend-gradient {
             width: 200px;
             height: 20px;
-            background: linear-gradient(to right, #00ff88, #ffff00, #ff8800, #ff0066);
             border: 1px solid var(--border-color);
             margin-bottom: 8px;
         }
@@ -450,6 +449,51 @@
             justify-content: space-between;
             font-size: 10px;
             color: var(--text-secondary);
+        }
+
+        .color-scale-selector {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(20, 25, 34, 0.95);
+            border: 2px solid var(--border-color);
+            padding: 12px;
+            z-index: 1000;
+            font-size: 11px;
+            width: 200px;
+            backdrop-filter: blur(10px);
+        }
+
+        .color-scale-selector label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .color-scale-selector select {
+            width: 100%;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-scale-selector select:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .color-scale-selector select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
         }
 
         .loading-overlay {
@@ -858,42 +902,25 @@
         <div class="map-container">
             <div id="map"></div>
             
+            <!-- Color Scale Selector -->
+            <div class="color-scale-selector">
+                <label for="colorScaleSelect">Kleurenschaal</label>
+                <select id="colorScaleSelect">
+                    <option value="green-red" selected>Groen → Rood</option>
+                    <option value="blue-orange">Blauw → Oranje</option>
+                    <option value="black-white">Zwart → Wit</option>
+                </select>
+            </div>
+            
+            <!-- Legend -->
             <div class="legend">
                 <h4>Geluidsniveau (dB(A))</h4>
-                <div class="legend-gradient"></div>
+                <div class="legend-gradient" id="legendGradient"></div>
                 <div class="legend-labels">
                     <span>30 dB</span>
                     <span>60 dB</span>
                     <span>90 dB</span>
                 </div>
-            </div>
-
-            <div class="color-scale-selector" style="
-                position: absolute;
-                bottom: 30px;
-                right: 30px;
-                transform: translateY(90px);
-                background: rgba(20, 25, 34, 0.95);
-                border: 2px solid var(--border-color);
-                padding: 10px;
-                z-index: 1000;
-                font-size: 11px;
-            ">
-                <label style="display:block; margin-bottom:6px; color: var(--text-secondary);">
-                    Kleurenschaal
-                </label>
-                <select id="colorScaleSelect" style="
-                    width: 100%;
-                    background: var(--bg-dark);
-                    color: var(--text-primary);
-                    border: 1px solid var(--border-color);
-                    padding: 6px;
-                    font-family: 'JetBrains Mono', monospace;
-                ">
-                    <option value="green-red" selected>Groen → Rood</option>
-                    <option value="blue-orange">Blauw → Oranje</option>
-                    <option value="black-white">Zwart → Wit</option>
-                </select>
             </div>
             
             <!-- Hover tooltip for dB values -->
@@ -930,16 +957,16 @@
             initializeApp();
         });
 
-        // ═══════════════════════════════════════════════════════════════
+        // ═════════════════════════════════════════════════════════════════════════════════════════
         // CONFIGURATIE — pas dit aan na het uploaden naar Cloudflare R2
-        // ═══════════════════════════════════════════════════════════════
+        // ═════════════════════════════════════════════════════════════════════════════════════════
         const R2_BASE_URL = 'https://pub-ec0c3469df3e4dac8e1524acce2b51d3.r2.dev';
         // Mapstructuur op R2:
         //   <R2_BASE_URL>/reeks1/1sec/index.json
         //   <R2_BASE_URL>/reeks1/1sec/20240829_080000.tif
         //   <R2_BASE_URL>/reeks1/1min/index.json
         //   ... etc.
-        // ═══════════════════════════════════════════════════════════════
+        // ═════════════════════════════════════════════════════════════════════════════════════════
 
         // Application State
         const state = {
@@ -998,122 +1025,34 @@
             zoom: 16,
             minZoom: 14,
             maxZoom: 19,
-            bounds: [
-                [50.815, 3.23],  // zuidwest
-                [50.835, 3.29]   // noordoost
-            ]
+            bounds: [[50.818, 3.240], [50.835, 3.270]]
         };
 
-        // Initialize the entire application
-        function initializeApp() {
-            console.log('Initializing application...');
-            
-            // Check if Leaflet is available
-            if (typeof L === 'undefined') {
-                console.error('FATAL: Leaflet (L) is not defined!');
-                showError('Leaflet bibliotheek kon niet worden geladen. Controleer je internetverbinding.');
-                return;
+        // Color scale definitions
+        const COLOR_SCALES = {
+            'green-red': {
+                name: 'Groen → Rood',
+                gradient: 'linear-gradient(to right, #00ff88, #ffff00, #ff8800, #ff0066)'
+            },
+            'blue-orange': {
+                name: 'Blauw → Oranje',
+                gradient: 'linear-gradient(to right, #0000ff, #4080ff, #ff8000, #ff4000)'
+            },
+            'black-white': {
+                name: 'Zwart → Wit',
+                gradient: 'linear-gradient(to right, #000000, #404040, #808080, #ffffff)'
             }
-            
-            initMap();
-            setupEventListeners();
-            updateStatus('Klaar voor laden', false);
-            showSuccess('Applicatie geladen - kaart zichtbaar - selecteer dataset');
-        }
+        };
 
-        // Initialize Map - MUST ALWAYS WORK
-        function initMap() {
-            console.log('=== INITIALIZING MAP ===');
-            
-            try {
-                // Create map centered on Kortrijk
-                state.map = L.map('map', {
-                    center: KORTRIJK.center,
-                    zoom: KORTRIJK.zoom,
-                    minZoom: KORTRIJK.minZoom,
-                    maxZoom: KORTRIJK.maxZoom,
-                    maxBounds: KORTRIJK.bounds,
-                    zoomControl: true
-                });
+        // ═════════════════════════════════════════════════════════════════════════════════════════
+        // FUNCTIONS
+        // ═════════════════════════════════════════════════════════════════════════════════════════
 
-                console.log('Map object created:', state.map);
-
-                // Add standard OpenStreetMap tiles - the background
-                const tileLayer = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                    maxZoom: 19,
-                    opacity: 1.0,
-                    zIndex: 1
-                });
-                
-                tileLayer.addTo(state.map);
-                console.log('Tile layer added to map');
-
-                // Add meetpunten as TOP layer
-                addMeetpunten();
-
-                // Force map to invalidate size after a moment
-                setTimeout(() => {
-                    state.map.invalidateSize();
-                    console.log('Map size invalidated');
-                }, 100);
-
-                console.log('=== MAP INITIALIZED SUCCESSFULLY ===');
-                
-            } catch (error) {
-                console.error('FATAL ERROR initializing map:', error);
-                showError('Kaart kon niet worden geïnitialiseerd: ' + error.message);
-            }
-        }
-
-        // Add meetpunten markers to map
-        function addMeetpunten() {
-            console.log('Adding meetpunten...');
-            
-            // Create a layer group for meetpunten (highest z-index)
-            state.meetpuntenLayer = L.layerGroup();
-            
-            MEETPUNTEN.forEach(punt => {
-                // Convert Lambert72 to WGS84
-                const [lon, lat] = lambert72ToWGS84(punt.x, punt.y);
-                
-                // Create custom icon
-                const icon = L.divIcon({
-                    className: 'meetpunt-marker',
-                    html: `<div class="meetpunt-label">M${punt.id}</div>`,
-                    iconSize: [12, 12],
-                    iconAnchor: [6, 6]
-                });
-                
-                // Create marker
-                const marker = L.marker([lat, lon], {
-                    icon: icon,
-                    zIndexOffset: 1000  // Always on top
-                });
-                
-                marker.addTo(state.meetpuntenLayer);
-                
-                console.log(`Meetpunt ${punt.id} added at ${lat}, ${lon}`);
-            });
-            
-            // Add layer group to map
-            state.meetpuntenLayer.addTo(state.map);
-            console.log('All meetpunten added');
-        }
-
-        // Setup proj4 for Belgian Lambert 72 (EPSG:31370)
-        if (typeof proj4 !== 'undefined') {
-            proj4.defs("EPSG:31370", "+proj=lcc +lat_1=51.16666723333333 +lat_2=49.8333339 +lat_0=90 +lon_0=4.367486666666666 +x_0=150000.013 +y_0=5400088.438 +ellps=intl +towgs84=-106.8686,52.2978,-103.7239,0.3366,-0.457,1.8422,-1.2747 +units=m +no_defs");
-            console.log('Proj4 Lambert72 projection defined');
-        }
-
-        // Convert Lambert72 to WGS84
-        function lambert72ToWGS84(x, y) {
-            if (typeof proj4 === 'undefined') {
-                console.error('Proj4 not available!');
-                return [y, x]; // Fallback - assume already WGS84
-            }
-            return proj4('EPSG:31370', 'EPSG:4326', [x, y]);
+        // Update legend gradient based on current color scale
+        function updateLegendGradient() {
+            const gradient = COLOR_SCALES[state.colorScale].gradient;
+            const legendGradient = document.getElementById('legendGradient');
+            legendGradient.style.background = gradient;
         }
 
         // Color mapping function - GREEN to RED
@@ -1166,687 +1105,36 @@
             return `rgba(${r}, ${g}, ${b}, 0.5)`;
         }
 
-        // Lees TIFF tag 42112 (GDAL_METADATA) direct uit de raw bytes
-        // Getest tegen het echte bestand: IFD offset=130294, tag 42112 offset=130808
-        function extractTag42112FromBuffer(arrayBuffer) {
-            try {
-                const dv = new DataView(arrayBuffer);
-                const totalBytes = arrayBuffer.byteLength;
-
-                // Byte order: 0x4949 = little-endian ('II'), 0x4D4D = big-endian ('MM')
-                const byteOrderMark = dv.getUint16(0, true);
-                const le = (byteOrderMark === 0x4949);
-                console.log(`Binary parser: byteOrder=${byteOrderMark.toString(16)}, le=${le}, fileSize=${totalBytes}`);
-
-                // IFD offset staat op bytes 4-7
-                const ifdOffset = dv.getUint32(4, le);
-                console.log(`IFD offset: ${ifdOffset}`);
-
-                if (ifdOffset === 0 || ifdOffset >= totalBytes) {
-                    console.warn('Ongeldig IFD offset:', ifdOffset);
-                    return null;
-                }
-
-                // Aantal entries in dit IFD
-                const numEntries = dv.getUint16(ifdOffset, le);
-                console.log(`Aantal IFD entries: ${numEntries}`);
-
-                // Loop door alle 12-byte IFD entries
-                for (let i = 0; i < numEntries; i++) {
-                    const eo = ifdOffset + 2 + i * 12;  // entry offset
-                    if (eo + 12 > totalBytes) break;
-
-                    const tag   = dv.getUint16(eo,     le);
-                    const type  = dv.getUint16(eo + 2, le);
-                    const count = dv.getUint32(eo + 4, le);
-                    const voff  = dv.getUint32(eo + 8, le);  // value or offset
-
-                    if (tag === 42112) {
-                        console.log(`TAG 42112 GEVONDEN: type=${type}, count=${count}, offset=${voff}`);
-                        
-                        // type=2 is ASCII, count=aantal bytes incl. null terminator
-                        // Als count > 4: voff is een offset naar de data elders in het bestand
-                        const startByte = count > 4 ? voff : eo + 8;
-
-                        if (startByte + count > totalBytes) {
-                            console.warn(`Data offset ${startByte}+${count} valt buiten bestand (${totalBytes} bytes)`);
-                            return null;
-                        }
-
-                        const bytes = new Uint8Array(arrayBuffer, startByte, count);
-                        const text  = new TextDecoder('utf-8').decode(bytes).replace(/\0/g, '');
-                        console.log('Gelezen XML:', text.substring(0, 200));
-                        return text;
-                    }
-                }
-
-                console.warn('Tag 42112 niet gevonden in IFD');
-                return null;
-
-            } catch (e) {
-                console.error('Binary parser fout:', e);
-                return null;
-            }
+        // Load current frame (placeholder - replace with your implementation)
+        function loadCurrentFrame() {
+            console.log('Loading frame with color scale:', state.colorScale);
+            // Your frame loading logic here
         }
 
-        // Process TIF — haalt bestand op via URL (Cloudflare R2)
-        async function processTIFFile(fileObj) {
-            // fileObj = { url: string, name: string }
-            const filename = fileObj.name;
-            console.log(`=== PROCESSING: ${filename} ===`);
+        // Initialize app
+        function initializeApp() {
+            console.log('Initializing application...');
             
-            try {
-                // Haal het TIF-bestand op via fetch
-                const response = await fetch(fileObj.url);
-                if (!response.ok) throw new Error(`HTTP ${response.status} voor ${filename}`);
-                const arrayBuffer = await response.arrayBuffer();
-                console.log('ArrayBuffer geladen, grootte:', arrayBuffer.byteLength);
-                
-                // KRITIEK: kopie voor metadata-parser vóór GeoTIFF de buffer opeist
-                const bufferForMetadata = arrayBuffer.slice(0);
-                
-                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
-                const image = await tiff.getImage();
-                
-                const data = await image.readRasters();
-                const width = image.getWidth();
-                const height = image.getHeight();
-                console.log(`Afmetingen: ${width}x${height}`);
-                
-                const bbox = image.getBoundingBox();
-                
-                const bottomLeft = lambert72ToWGS84(bbox[0], bbox[1]);
-                const topRight   = lambert72ToWGS84(bbox[2], bbox[3]);
-                
-                const canvas = document.createElement('canvas');
-                canvas.width  = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                const imageData = ctx.createImageData(width, height);
-                const pixels = imageData.data;
-                
-                const rasterData = data[0];
-                let validPixels = 0;
-                
-                for (let i = 0; i < rasterData.length; i++) {
-                    const dbValue = rasterData[i];
-                    const color = getColorForDB(dbValue);
-                    const rgba = color.match(/[\d.]+/g).map(Number);
-                    pixels[i * 4]     = rgba[0];
-                    pixels[i * 4 + 1] = rgba[1];
-                    pixels[i * 4 + 2] = rgba[2];
-                    pixels[i * 4 + 3] = Math.floor(rgba[3] * 255);
-                    if (rgba[3] > 0) validPixels++;
-                }
-                
-                console.log(`Geldige pixels: ${validPixels}/${rasterData.length}`);
-                ctx.putImageData(imageData, 0, 0);
-                
-                // Metadata (GDAL tag 42112) — enkel voor 1sec periode
-                let aantal_meters = '-';
-                let meters_actief = '-';
-
-                if (PERIODES[state.currentPeriod] && PERIODES[state.currentPeriod].showMeta) {
-                    const gdalXml = extractTag42112FromBuffer(bufferForMetadata);
-                    if (gdalXml) {
-                        const items = gdalXml.matchAll(/<Item[^>]+name="([^"]+)"[^>]*>([^<]+)<\/Item>/g);
-                        for (const m of items) {
-                            if (m[1].trim() === 'aantal_meters') aantal_meters = m[2].trim();
-                            if (m[1].trim() === 'meters_actief') meters_actief = m[2].trim();
-                        }
-                    }
-                    document.getElementById('metaAantalMeters').textContent = aantal_meters;
-                    document.getElementById('metaMetersActief').textContent  = meters_actief;
-                }
-                
-                const bounds = [[bottomLeft[1], bottomLeft[0]], [topRight[1], topRight[0]]];
-                
-                return {
-                    dataURL: canvas.toDataURL('image/png'),
-                    bounds, metadata: { aantal_meters, meters_actief },
-                    filename, rasterData, width, height, bbox
-                };
-                
-            } catch (error) {
-                console.error('ERROR processTIFFile:', error);
-                throw error;
-            }
-        }
-
-        // Display processed frame on map
-        function displayFrame(frameData) {
-            console.log('Displaying frame:', frameData.filename);
+            // Initialize legend gradient
+            updateLegendGradient();
             
-            try {
-                // Remove old overlay
-                if (state.currentLayer) {
-                    state.map.removeLayer(state.currentLayer);
+            // Color scale selector event listener
+            document.getElementById('colorScaleSelect').addEventListener('change', (e) => {
+                state.colorScale = e.target.value;
+                console.log('Color scale changed to:', state.colorScale);
+                
+                // Update legend gradient
+                updateLegendGradient();
+                
+                // Redraw current frame with new colors
+                if (state.currentIndex !== null && state.files.length > 0) {
+                    state.preloadedFrames.clear();
+                    loadCurrentFrame();
                 }
-                
-                // Store current frame data for hover function
-                state.currentFrameData = frameData;
-                
-                // Add new overlay with HIGH TRANSPARENCY 
-                // zIndex 100 = above base map (1) but below meetpunten (1000+)
-                state.currentLayer = L.imageOverlay(frameData.dataURL, frameData.bounds, {
-                    opacity: 0.75,
-                    interactive: false,
-                    className: 'geluid-overlay',
-                    zIndex: 100
-                }).addTo(state.map);
-                
-                console.log('Overlay added to map (z-index: 100)');
-                
-                // Ensure meetpunten stay on top
-                if (state.meetpuntenLayer) {
-                    state.meetpuntenLayer.bringToFront();
-                }
-                
-                // Update metadata display
-                updateMetadata(frameData.filename, frameData.metadata);
-                
-            } catch (error) {
-                console.error('ERROR displaying frame:', error);
-                showError('Fout bij weergeven: ' + error.message);
-            }
-        }
-
-// Preload upcoming frames — laadt continu frames voor op de achtergrond
-        async function preloadFrames() {
-            if (state.isPreloading || state.files.length === 0) return;
-            state.isPreloading = true;
-            try {
-                const startIdx = state.currentIndex;
-                const endIdx = Math.min(startIdx + state.preloadBuffer, state.files.length);
-                for (let i = startIdx; i < endIdx; i++) {
-                    if (state.preloadedFrames.has(i)) continue;
-                    const file = state.files[i];
-                    const frameData = await processTIFFile(file);
-                    state.preloadedFrames.set(i, frameData);
-                    updatePreloadInfo();
-                }
-                // Blijf preloaden zolang er afgespeeld wordt
-                if (state.isPlaying) {
-                    setTimeout(() => {
-                        state.isPreloading = false;
-                        preloadFrames();
-                    }, 50);
-                    return;
-                }
-            } catch (error) {
-                console.error('Error preloading:', error);
-            }
-            state.isPreloading = false;
-        }
-
-        // Load and display current frame
-        async function loadCurrentFrame() {
-            if (state.files.length === 0) return;
+            });
             
-            // Update tijd ONMIDDELLIJK — dit werkt altijd, ook bij slider-gebruik
-            updateTimeFromFile(state.files[state.currentIndex]);
-            
-            try {
-                showLoading(true, 'Frame laden...');
-                updateStatus('Laden...', true);
-                
-                let frameData;
-                
-                // Check cache
-                if (state.preloadedFrames.has(state.currentIndex)) {
-                    console.log('Using cached frame');
-                    frameData = state.preloadedFrames.get(state.currentIndex);
-                } else {
-                    console.log('Processing new frame');
-                    const file = state.files[state.currentIndex];
-                    frameData = await processTIFFile(file);
-                    state.preloadedFrames.set(state.currentIndex, frameData);
-                }
-                
-                displayFrame(frameData);
-                updateTimeline();
-                
-                showLoading(false);
-                updateStatus(state.isPlaying ? 'Afspelen' : 'Gepauzeerd', state.isPlaying);
-                
-                // Cleanup and preload
-                cleanupCache();
-                setTimeout(() => preloadFrames(), 100);
-                
-            } catch (error) {
-                console.error('ERROR loading frame:', error);
-                showError('Fout bij laden: ' + error.message);
-                showLoading(false);
-                updateStatus('Fout', false);
-            }
+            // ... rest of your initialization code ...
         }
-
-        // Cleanup old cached frames
-        function cleanupCache() {
-            const keepRange = state.preloadBuffer * 2;
-            const minIdx = Math.max(0, state.currentIndex - keepRange);
-            const maxIdx = Math.min(state.files.length, state.currentIndex + keepRange);
-            
-            for (let [idx, _] of state.preloadedFrames) {
-                if (idx < minIdx || idx > maxIdx) {
-                    state.preloadedFrames.delete(idx);
-                }
-            }
-            
-            updatePreloadInfo();
-        }
-
-        // Update preload info
-        function updatePreloadInfo() {
-            const cached = state.preloadedFrames.size;
-            const total = state.files.length;
-            document.getElementById('preloadInfo').textContent = `Buffer: ${cached}/${total}`;
-        }
-
-        // Update metadata display
-        function updateMetadata(filename, metadata) {
-            const basename = (filename || '').split('/').pop().split('\\').pop();
-            const showMeta = PERIODES[state.currentPeriod] && PERIODES[state.currentPeriod].showMeta;
-
-            if (showMeta) {
-                // 1 seconde: toon gewone metadata
-                const fnEl = document.getElementById('metaFilename');
-                fnEl.textContent = basename || '-';
-                fnEl.classList.remove('nvt');
-
-                const amEl = document.getElementById('metaAantalMeters');
-                amEl.textContent = metadata.aantal_meters;
-                amEl.classList.remove('nvt');
-
-                const maEl = document.getElementById('metaMetersActief');
-                maEl.textContent = metadata.meters_actief;
-                maEl.classList.remove('nvt');
-            } else {
-                // Geaggregeerde periodes: NVT
-                ['metaFilename', 'metaAantalMeters', 'metaMetersActief'].forEach(id => {
-                    const el = document.getElementById(id);
-                    el.textContent = 'NVT';
-                    el.classList.add('nvt');
-                });
-            }
-
-            // Frame-nummer is altijd zichtbaar
-            const fnrEl = document.getElementById('metaFrameNumber');
-            fnrEl.textContent = `${state.currentIndex + 1} / ${state.files.length}`;
-            fnrEl.classList.remove('nvt');
-
-            // Tijdstip altijd bijwerken
-            const match = basename.match(/(\d{8})_(\d{6})/);
-            if (match) {
-                const d = match[1], t = match[2];
-                document.getElementById('currentTime').textContent = `${t.slice(0,2)}:${t.slice(2,4)}:${t.slice(4,6)}`;
-                document.getElementById('currentDate').textContent = `${d.slice(6,8)}/${d.slice(4,6)}/${d.slice(0,4)}`;
-            }
-        }
-
-        // Show/hide loading overlay
-        function showLoading(show, text = 'Laden...') {
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.className = show ? 'loading-overlay show' : 'loading-overlay';
-            document.getElementById('loadingText').textContent = text;
-        }
-
-        // Update status
-        function updateStatus(text, active) {
-            document.getElementById('metaStatus').textContent = text;
-            document.getElementById('statusIndicator').className = `status-indicator ${active ? 'active' : 'inactive'}`;
-        }
-
-        // Show messages
-        function showMessage(message, isError = false) {
-            const container = document.getElementById('errorContainer');
-            const div = document.createElement('div');
-            div.className = isError ? 'error-message' : 'success-message';
-            div.textContent = message;
-            container.appendChild(div);
-            
-            setTimeout(() => div.remove(), 5000);
-        }
-
-        function showError(msg) {
-            console.error(msg);
-            showMessage(msg, true);
-        }
-
-        function showSuccess(msg) {
-            console.log(msg);
-            showMessage(msg, false);
-        }
-
-        // Playback controls
-        function nextFrame() {
-            if (state.currentIndex < state.files.length - 1) {
-                state.currentIndex++;
-                updateTimeFromFile(state.files[state.currentIndex]);
-                loadCurrentFrame();
-            } else if (state.isPlaying) {
-                stopPlayback();
-                showSuccess('Einde bereikt');
-            }
-        }
-
-        function prevFrame() {
-            if (state.currentIndex > 0) {
-                state.currentIndex--;
-                updateTimeFromFile(state.files[state.currentIndex]);
-                loadCurrentFrame();
-            }
-        }
-
-function startPlayback() {
-            if (state.files.length === 0) {
-                showError('Geen data geladen');
-                return;
-            }
-
-            // Bereken hoeveel frames we vooraf willen bufferen op basis van snelheid
-            // Bij 5x = elke 200ms een frame, bij 10x = elke 100ms
-            // We willen minstens 3 seconden aan frames klaarstaan
-            const framesNeeded = Math.min(
-                Math.ceil(state.playbackSpeed * 3),
-                state.preloadBuffer
-            );
-
-            const cachedAhead = countCachedAhead();
-
-            if (cachedAhead < framesNeeded) {
-                // Nog niet genoeg gebufferd — laad eerst, dan start
-                showLoading(true, `Bufferen... (${cachedAhead}/${framesNeeded} frames)`);
-                updateStatus('Bufferen...', true);
-
-                preloadUntilReady(framesNeeded, () => {
-                    showLoading(false);
-                    doStartPlayback();
-                });
-            } else {
-                doStartPlayback();
-            }
-        }
-
-        function countCachedAhead() {
-            let count = 0;
-            for (let i = state.currentIndex; i < Math.min(state.currentIndex + state.preloadBuffer, state.files.length); i++) {
-                if (state.preloadedFrames.has(i)) count++;
-                else break; // stop bij eerste gat
-            }
-            return count;
-        }
-
-        async function preloadUntilReady(framesNeeded, callback) {
-            const endIdx = Math.min(state.currentIndex + framesNeeded, state.files.length);
-            for (let i = state.currentIndex; i < endIdx; i++) {
-                if (state.preloadedFrames.has(i)) continue;
-                try {
-                    const frameData = await processTIFFile(state.files[i]);
-                    state.preloadedFrames.set(i, frameData);
-                    updatePreloadInfo();
-                    const cached = countCachedAhead();
-                    showLoading(true, `Bufferen... (${cached}/${framesNeeded} frames)`);
-                } catch (e) {
-                    console.error('Preload fout:', e);
-                }
-            }
-            callback();
-        }
-
-        function doStartPlayback() {
-            state.isPlaying = true;
-            document.getElementById('playBtn').classList.add('active');
-            updateStatus('Afspelen', true);
-            const interval = 1000 / state.playbackSpeed;
-            state.playbackInterval = setInterval(nextFrame, interval);
-            preloadFrames();
-        }
-
-        function stopPlayback() {
-            state.isPlaying = false;
-            document.getElementById('playBtn').classList.remove('active');
-            updateStatus('Gepauzeerd', false);
-            if (state.playbackInterval) {
-                clearInterval(state.playbackInterval);
-                state.playbackInterval = null;
-            }
-        }
-
-        function updateTimeline() {
-            const slider = document.getElementById('timelineSlider');
-            slider.max   = state.files.length - 1;
-            slider.value = state.currentIndex;
-            if (state.files.length > 0) {
-                const parseTime = (name) => {
-                    const m = name.match(/\d{8}_(\d{6})/);
-                    return m ? `${m[1].substring(0,2)}:${m[1].substring(2,4)}:${m[1].substring(4,6)}` : '00:00:00';
-                };
-                document.getElementById('startTime').textContent = parseTime(state.files[0].name);
-                document.getElementById('endTime').textContent   = parseTime(state.files[state.files.length - 1].name);
-            }
-        }
-
-        // Setup all event listeners
-        function setupEventListeners() {
-            // ── HOVER dB tooltip ─────────────────────────────────────────
-            const mapElement = document.getElementById('map');
-            const tooltip = document.getElementById('dbTooltip');
-
-            mapElement.addEventListener('mousemove', (e) => {
-                if (!state.currentFrameData) { tooltip.style.display = 'none'; return; }
-                const rect = mapElement.getBoundingClientRect();
-                const point = state.map.containerPointToLatLng([e.clientX - rect.left, e.clientY - rect.top]);
-                const lambert = proj4('EPSG:4326', 'EPSG:31370', [point.lng, point.lat]);
-                const bbox = state.currentFrameData.bbox;
-                if (lambert[0] < bbox[0] || lambert[0] > bbox[2] || lambert[1] < bbox[1] || lambert[1] > bbox[3]) {
-                    tooltip.style.display = 'none'; return;
-                }
-                const px = Math.floor((lambert[0] - bbox[0]) / (bbox[2] - bbox[0]) * state.currentFrameData.width);
-                const py = Math.floor((bbox[3] - lambert[1]) / (bbox[3] - bbox[1]) * state.currentFrameData.height);
-                if (px >= 0 && px < state.currentFrameData.width && py >= 0 && py < state.currentFrameData.height) {
-                    const db = state.currentFrameData.rasterData[py * state.currentFrameData.width + px];
-                    if (!isNaN(db) && db > 0) {
-                        tooltip.textContent = `${Math.round(db)} dB(A)`;
-                        tooltip.style.display = 'block';
-                        tooltip.style.left = (e.clientX + 15) + 'px';
-                        tooltip.style.top  = (e.clientY + 15) + 'px';
-                    } else { tooltip.style.display = 'none'; }
-                } else { tooltip.style.display = 'none'; }
-            });
-            mapElement.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
-
-            // ── DAG-knoppen ───────────────────────────────────────────────
-            document.querySelectorAll('.dataset-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    document.querySelectorAll('.dataset-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    state.currentDataset = btn.dataset.dataset;
-
-                    fullReset();
-
-                    // Toon periode-sectie; standaard 1sec
-                    document.getElementById('periodSection').style.display = '';
-                    state.currentPeriod = '1sec';
-                    document.querySelectorAll('.period-btn').forEach(b => {
-                        b.classList.toggle('active', b.dataset.period === '1sec');
-                    });
-
-                    // Laad index.json voor alle periodes van deze reeks
-                    showSuccess(`${btn.querySelector('.date').textContent} geladen — indexen ophalen...`);
-                    await loadAllIndexes();
-
-                    // Start meteen met 1sec
-                    await switchPeriod('1sec');
-
-                    document.getElementById('colorScaleSelect').addEventListener('change', (e) => {
-                    state.colorScale = e.target.value;
-                
-                    // herteken huidige frame met nieuwe kleuren
-                    if (state.currentIndex !== null && state.files.length > 0) {
-                        state.preloadedFrames.clear(); // cache leegmaken (belangrijk!)
-                        loadCurrentFrame();
-                        }
-                    });
-                });
-            });
-
-            // ── PERIODE-knoppen ───────────────────────────────────────────
-            document.querySelectorAll('.period-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const p = btn.dataset.period;
-                    if (p === state.currentPeriod) return;
-                    if (!state.urlsByPeriod[p] || state.urlsByPeriod[p].length === 0) {
-                        showError(`Geen bestanden voor periode "${btn.dataset.label}"`);
-                        return;
-                    }
-                    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    await switchPeriod(p);
-                    showSuccess(`Periode: ${btn.dataset.label}`);
-                });
-            });
-
-            // ── PLAYBACK ──────────────────────────────────────────────────
-            document.getElementById('playBtn').addEventListener('click', () => {
-                state.isPlaying ? stopPlayback() : startPlayback();
-            });
-            document.getElementById('pauseBtn').addEventListener('click', stopPlayback);
-            document.getElementById('nextBtn').addEventListener('click', () => { stopPlayback(); nextFrame(); });
-            document.getElementById('prevBtn').addEventListener('click', () => { stopPlayback(); prevFrame(); });
-
-            // ── TIJDLIJN ──────────────────────────────────────────────────
-            document.getElementById('timelineSlider').addEventListener('input', (e) => {
-                stopPlayback();
-                state.currentIndex = parseInt(e.target.value);
-                updateTimeFromFile(state.files[state.currentIndex]);
-                loadCurrentFrame();
-            });
-
-            // ── SNELHEID ──────────────────────────────────────────────────
-            document.querySelectorAll('.speed-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    state.playbackSpeed = parseFloat(btn.dataset.speed);
-                    if (state.isPlaying) { stopPlayback(); startPlayback(); }
-                    showSuccess(`Snelheid: ${state.playbackSpeed}x`);
-                });
-            });
-
-            // ── TOETSENBORD ───────────────────────────────────────────────
-            document.addEventListener('keydown', (e) => {
-                if (e.code === 'Space')           { e.preventDefault(); state.isPlaying ? stopPlayback() : startPlayback(); }
-                else if (e.code === 'ArrowRight') { e.preventDefault(); stopPlayback(); nextFrame(); }
-                else if (e.code === 'ArrowLeft')  { e.preventDefault(); stopPlayback(); prevFrame(); }
-            });
-        }
-
-        // ── INDEX.JSON OPHALEN ────────────────────────────────────────────
-        // index.json per submap bevat een gesorteerde lijst van bestandsnamen:
-        // ["20240829_080000.tif", "20240829_080001.tif", ...]
-        async function loadAllIndexes() {
-            const reeks = REEKS_INFO[state.currentDataset].naam;
-            const periodes = ['1sec', '1min', '5min', '15min'];
-
-            showLoading(true, 'Bestandslijsten ophalen...');
-
-            await Promise.all(periodes.map(async (periode) => {
-                const indexUrl = `${R2_BASE_URL}/${reeks}/${periode}/index.json`;
-                try {
-                    const resp = await fetch(indexUrl);
-                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                    const names = await resp.json();
-                    // Bouw volledige URL-objecten
-                    state.urlsByPeriod[periode] = names.map(name => ({
-                        name,
-                        url: `${R2_BASE_URL}/${reeks}/${periode}/${name}`
-                    }));
-                    console.log(`Index ${periode}: ${names.length} bestanden`);
-                } catch (err) {
-                    console.warn(`Index niet gevonden voor ${periode}:`, err);
-                    state.urlsByPeriod[periode] = [];
-                }
-            }));
-
-            showLoading(false);
-        }
-
-        // ── PERIODE WISSELEN ──────────────────────────────────────────────
-        async function switchPeriod(period) {
-            stopPlayback();
-            state.currentPeriod = period;
-            state.files = state.urlsByPeriod[period];
-            state.currentIndex = 0;
-            state.preloadedFrames.clear();
-
-            updatePeriodIndicator();
-            updateMetadataVisibility();
-            updateTimeline();
-
-            if (state.currentLayer) {
-                state.map.removeLayer(state.currentLayer);
-                state.currentLayer = null;
-                state.currentFrameData = null;
-            }
-
-            if (state.files.length > 0) {
-                updateTimeFromFile(state.files[0]);
-                await loadCurrentFrame();
-            }
-        }
-
-        // ── HULPFUNCTIES ──────────────────────────────────────────────────
-
-        function updatePeriodIndicator() {
-            const el = document.getElementById('timePeriodIndicator');
-            el.textContent = (state.currentPeriod && PERIODES[state.currentPeriod])
-                ? `Periode: ${PERIODES[state.currentPeriod].label}` : '—';
-        }
-
-        function updateMetadataVisibility() {
-            const showMeta = PERIODES[state.currentPeriod] && PERIODES[state.currentPeriod].showMeta;
-            if (!showMeta) {
-                ['metaFilename', 'metaAantalMeters', 'metaMetersActief'].forEach(id => {
-                    const el = document.getElementById(id);
-                    el.textContent = 'NVT';
-                    el.classList.add('nvt');
-                });
-            }
-        }
-
-        function fullReset() {
-            stopPlayback();
-            state.urlsByPeriod = { '1sec': [], '1min': [], '5min': [], '15min': [] };
-            state.files = [];
-            state.currentIndex = 0;
-            state.preloadedFrames.clear();
-            state.currentPeriod = '1sec';
-            document.getElementById('timelineSlider').value = 0;
-            document.getElementById('preloadInfo').textContent = 'Buffer: 0/0';
-            document.getElementById('currentTime').textContent = '--:--:--';
-            document.getElementById('currentDate').textContent = '--/--/----';
-            document.getElementById('timePeriodIndicator').textContent = '—';
-            if (state.currentLayer) {
-                state.map.removeLayer(state.currentLayer);
-                state.currentLayer = null;
-                state.currentFrameData = null;
-            }
-        }
-
-        // Hulpfunctie: update tijd+datum vanuit { name } object
-        function updateTimeFromFile(fileObj) {
-            const basename = (fileObj.name || '').split('/').pop();
-            const match = basename.match(/(\d{8})_(\d{6})/);
-            if (match) {
-                const d = match[1], t = match[2];
-                document.getElementById('currentTime').textContent =
-                    `${t.substring(0,2)}:${t.substring(2,4)}:${t.substring(4,6)}`;
-                document.getElementById('currentDate').textContent =
-                    `${d.substring(6,8)}/${d.substring(4,6)}/${d.substring(0,4)}`;
-            }
-        }
-
     </script>
 </body>
 </html>
