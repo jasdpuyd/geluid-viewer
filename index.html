@@ -868,6 +868,34 @@
                 </div>
             </div>
 
+            <div class="color-scale-selector" style="
+                position: absolute;
+                bottom: 30px;
+                right: 30px;
+                transform: translateY(90px);
+                background: rgba(20, 25, 34, 0.95);
+                border: 2px solid var(--border-color);
+                padding: 10px;
+                z-index: 1000;
+                font-size: 11px;
+            ">
+                <label style="display:block; margin-bottom:6px; color: var(--text-secondary);">
+                    Kleurenschaal
+                </label>
+                <select id="colorScaleSelect" style="
+                    width: 100%;
+                    background: var(--bg-dark);
+                    color: var(--text-primary);
+                    border: 1px solid var(--border-color);
+                    padding: 6px;
+                    font-family: 'JetBrains Mono', monospace;
+                ">
+                    <option value="green-red" selected>Groen → Rood</option>
+                    <option value="blue-orange">Blauw → Oranje</option>
+                    <option value="black-white">Zwart → Wit</option>
+                </select>
+            </div>
+            
             <!-- Hover tooltip for dB values -->
             <div class="db-tooltip" id="dbTooltip">-- dB(A)</div>
 
@@ -927,6 +955,7 @@
             map: null,
             currentLayer: null,
             meetpuntenLayer: null,
+            colorScale: 'green-red',
             preloadedFrames: new Map(),
             preloadBuffer: 10,           // kleiner buffer want bestanden komen via netwerk
             isPreloading: false,
@@ -1090,33 +1119,50 @@
         // Color mapping function - GREEN to RED
         function getColorForDB(db, minDB = 30, maxDB = 90) {
             if (isNaN(db) || db === null || db === undefined) {
-                return 'rgba(0, 0, 0, 0)'; // Transparent for invalid
+                return 'rgba(0, 0, 0, 0)';
             }
-            
-            const normalized = Math.max(0, Math.min(1, (db - minDB) / (maxDB - minDB)));
-            
+        
+            const t = Math.max(0, Math.min(1, (db - minDB) / (maxDB - minDB)));
+        
             let r, g, b;
-            if (normalized < 0.33) {
-                // Green to Yellow
-                const t = normalized / 0.33;
-                r = Math.floor(t * 255);
-                g = 255;
-                b = 0;
-            } else if (normalized < 0.66) {
-                // Yellow to Orange
-                const t = (normalized - 0.33) / 0.33;
-                r = 255;
-                g = Math.floor(255 - t * 119);
-                b = 0;
-            } else {
-                // Orange to Red
-                const t = (normalized - 0.66) / 0.34;
-                r = 255;
-                g = Math.floor(136 - t * 136);
-                b = Math.floor(t * 102);
+        
+            switch (state.colorScale) {
+        
+                case 'blue-orange':
+                    // blauw → oranje
+                    r = Math.floor(255 * t);
+                    g = Math.floor(128 * t);
+                    b = Math.floor(255 * (1 - t));
+                    break;
+        
+                case 'black-white':
+                    // zwart → wit
+                    r = g = b = Math.floor(255 * t);
+                    break;
+        
+                case 'green-red':
+                default:
+                    // originele schaal
+                    if (t < 0.33) {
+                        const tt = t / 0.33;
+                        r = Math.floor(tt * 255);
+                        g = 255;
+                        b = 0;
+                    } else if (t < 0.66) {
+                        const tt = (t - 0.33) / 0.33;
+                        r = 255;
+                        g = Math.floor(255 - tt * 119);
+                        b = 0;
+                    } else {
+                        const tt = (t - 0.66) / 0.34;
+                        r = 255;
+                        g = Math.floor(136 - tt * 136);
+                        b = Math.floor(tt * 102);
+                    }
+                    break;
             }
-            
-            // REDUCED opacity in the color itself for better map visibility
+        
+            // transparantie behouden
             return `rgba(${r}, ${g}, ${b}, 0.5)`;
         }
 
@@ -1632,6 +1678,16 @@ function startPlayback() {
 
                     // Start meteen met 1sec
                     await switchPeriod('1sec');
+
+                    document.getElementById('colorScaleSelect').addEventListener('change', (e) => {
+                    state.colorScale = e.target.value;
+                
+                    // herteken huidige frame met nieuwe kleuren
+                    if (state.currentIndex !== null && state.files.length > 0) {
+                        state.preloadedFrames.clear(); // cache leegmaken (belangrijk!)
+                        loadCurrentFrame();
+                        }
+                    });
                 });
             });
 
