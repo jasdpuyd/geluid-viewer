@@ -155,39 +155,6 @@
             color: var(--text-secondary);
         }
 
-        .file-selector {
-            margin-top: 16px;
-        }
-
-        .file-selector label {
-            display: block;
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .file-input {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-dark);
-            border: 2px solid var(--border-color);
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-
-        .file-input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-        }
-
-        .timeline-control {
-            margin-top: 16px;
-        }
-
         .timeline-slider {
             width: 100%;
             height: 6px;
@@ -205,23 +172,6 @@
             background: var(--accent-primary);
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 0 12px rgba(0, 255, 136, 0.5);
-            transition: all 0.2s;
-        }
-
-        .timeline-slider::-webkit-slider-thumb:hover {
-            width: 22px;
-            height: 22px;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
-        }
-
-        .timeline-slider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            background: var(--accent-primary);
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
             box-shadow: 0 0 12px rgba(0, 255, 136, 0.5);
         }
 
@@ -241,24 +191,17 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 18px;
             transition: all 0.2s;
-            position: relative;
         }
 
         .control-btn:hover {
             background: var(--accent-primary);
             color: var(--bg-dark);
             border-color: var(--accent-primary);
-            transform: translateY(-2px);
-        }
-
-        .control-btn:active {
-            transform: translateY(0);
         }
 
         .control-btn.active {
             background: var(--accent-primary);
             color: var(--bg-dark);
-            border-color: var(--accent-primary);
         }
 
         .speed-controls {
@@ -280,14 +223,9 @@
             transition: all 0.2s;
         }
 
-        .speed-btn:hover {
-            border-color: var(--accent-primary);
-        }
-
         .speed-btn.active {
             background: var(--accent-primary);
             color: var(--bg-dark);
-            border-color: var(--accent-primary);
         }
 
         .metadata-display {
@@ -319,33 +257,13 @@
             border-bottom: none;
         }
 
-        /* Meta-item waarbij de waarde op een nieuwe regel staat (voor lange waarden) */
-        .meta-item.meta-item--block {
-            flex-direction: column;
-            gap: 4px;
-        }
-
         .meta-label {
             color: var(--text-secondary);
-            flex-shrink: 0;
         }
 
         .meta-value {
             font-weight: 600;
             color: var(--accent-primary);
-            text-align: right;
-            word-break: break-all;
-        }
-
-        /* Waarde op volledige breedte, links uitgelijnd */
-        .meta-item--block .meta-value {
-            text-align: left;
-            word-break: break-word;
-            line-height: 1.5;
-            padding: 4px 6px;
-            background: rgba(0, 255, 136, 0.05);
-            border: 1px solid var(--border-color);
-            width: 100%;
         }
 
         .current-time {
@@ -364,7 +282,6 @@
             width: 100%;
         }
 
-        /* Map Container - ALWAYS VISIBLE */
         .map-container {
             flex: 1;
             position: relative;
@@ -375,47 +292,6 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            position: relative;
-        }
-
-        /* Hover tooltip for dB values */
-        .db-tooltip {
-            position: fixed;
-            background: rgba(20, 25, 34, 0.95);
-            border: 2px solid var(--accent-primary);
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--accent-primary);
-            pointer-events: none;
-            z-index: 10000;
-            display: none;
-            font-family: 'Space Mono', monospace;
-            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
-        }
-
-        /* Meetpunten styling */
-        .meetpunt-marker {
-            width: 12px;
-            height: 12px;
-            background: white;
-            border: 2px solid var(--accent-primary);
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-        }
-
-        .meetpunt-label {
-            background: rgba(0, 255, 136, 0.9);
-            color: var(--bg-dark);
-            width: 30px;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: 800;
-            margin-top: -30px;
-            margin-left: -10px;
-            white-space: nowrap;
         }
 
         .legend {
@@ -426,7 +302,6 @@
             border: 2px solid var(--border-color);
             padding: 16px;
             z-index: 999;
-            backdrop-filter: blur(10px);
         }
 
         .legend h4 {
@@ -444,13 +319,6 @@
             margin-bottom: 8px;
         }
 
-        .legend-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            color: var(--text-secondary);
-        }
-
         .color-scale-selector {
             position: absolute;
             top: 30px;
@@ -461,7 +329,6 @@
             z-index: 1000;
             font-size: 11px;
             width: 200px;
-            backdrop-filter: blur(10px);
         }
 
         .color-scale-selector label {
@@ -483,17 +350,6 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .color-scale-selector select:hover {
-            border-color: var(--accent-primary);
-        }
-
-        .color-scale-selector select:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
         }
 
         .loading-overlay {
@@ -507,15 +363,10 @@
             align-items: center;
             justify-content: center;
             z-index: 2000;
-            backdrop-filter: blur(5px);
         }
 
         .loading-overlay.show {
             display: flex;
-        }
-
-        .loading-content {
-            text-align: center;
         }
 
         .loading-spinner {
@@ -531,65 +382,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 14px;
-            color: var(--text-primary);
-            margin-top: 12px;
-        }
-
-        .error-message {
-            background: rgba(255, 0, 102, 0.1);
-            border: 2px solid var(--accent-secondary);
-            color: var(--accent-secondary);
-            padding: 16px;
-            margin: 12px 0;
-            font-size: 12px;
-            animation: slideIn 0.3s;
-        }
-
-        .success-message {
-            background: rgba(0, 255, 136, 0.1);
-            border: 2px solid var(--accent-primary);
-            color: var(--accent-primary);
-            padding: 16px;
-            margin: 12px 0;
-            font-size: 12px;
-            animation: slideIn 0.3s;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.active {
-            background: var(--accent-primary);
-        }
-
-        .status-indicator.inactive {
-            background: var(--text-secondary);
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
 
         .period-buttons {
@@ -652,120 +444,6 @@
             color: var(--text-secondary);
         }
 
-        .folder-instruction {
-            font-size: 12px;
-            color: var(--text-secondary);
-            padding: 10px 12px;
-            background: var(--bg-dark);
-            border: 1px solid var(--border-color);
-            line-height: 1.6;
-        }
-
-        .folder-instruction strong {
-            color: var(--accent-primary);
-            display: block;
-            margin-top: 4px;
-            font-size: 11px;
-            word-break: break-all;
-        }
-
-        .period-badge {
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 700;
-            background: rgba(255, 0, 102, 0.15);
-            border: 1px solid var(--accent-secondary);
-            color: var(--accent-secondary);
-            padding: 2px 8px;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-
-        /* Metadata NVT styling */
-        .meta-value.nvt {
-            color: var(--text-secondary);
-            font-style: italic;
-            font-weight: 400;
-        }
-
-        /* Current time period indicator */
-        .time-period-indicator {
-            font-size: 10px;
-            color: var(--accent-secondary);
-            text-align: center;
-            margin-top: 6px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-
-            font-size: 10px;
-            color: var(--text-secondary);
-            text-align: center;
-            margin-top: 8px;
-        }
-
-        .load-progress-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 10px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 5px;
-            font-size: 11px;
-            background: var(--bg-dark);
-            transition: border-color 0.3s;
-        }
-
-        .load-progress-item.loaded {
-            border-color: var(--accent-primary);
-            background: rgba(0, 255, 136, 0.05);
-        }
-
-        .load-progress-item.missing {
-            border-color: var(--accent-secondary);
-            opacity: 0.5;
-        }
-
-        .prog-label {
-            font-weight: 700;
-            color: var(--text-secondary);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .load-progress-item.loaded .prog-label {
-            color: var(--accent-primary);
-        }
-
-        .prog-count {
-            color: var(--text-secondary);
-            font-size: 10px;
-        }
-
-        .load-progress-item.loaded .prog-count {
-            color: var(--accent-primary);
-        }
-
-        /* Scrollbar styling */
-        .sidebar-content::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .sidebar-content::-webkit-scrollbar-track {
-            background: var(--bg-dark);
-        }
-
-        .sidebar-content::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
-        }
-
-        .sidebar-content::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-primary);
-        }
-
-        /* Leaflet overrides om zeker te zijn dat de kaart zichtbaar is */
         .leaflet-container {
             background: #1a1a2e !important;
         }
@@ -773,7 +451,6 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <h1>SOUND VIEWER</h1>
@@ -781,7 +458,6 @@
             </div>
             
             <div class="sidebar-content">
-                <!-- Stap 1: Dag kiezen -->
                 <div class="control-section">
                     <h3>Stap 1 — Dag</h3>
                     <div class="dataset-buttons">
@@ -800,58 +476,48 @@
                     </div>
                 </div>
 
-                <!-- Stap 2: Tijdsperiode kiezen (verschijnt na dagkeuze) -->
                 <div class="control-section" id="periodSection" style="display:none;">
                     <h3>Stap 2 — Tijdsperiode</h3>
                     <div class="period-buttons">
-                        <button class="period-btn active" data-period="1sec" data-label="1 seconde">
+                        <button class="period-btn active" data-period="1sec">
                             <span class="period-name">1 sec</span>
                             <span class="period-desc">Ruwe meting</span>
                         </button>
-                        <button class="period-btn" data-period="1min" data-label="1 minuut">
+                        <button class="period-btn" data-period="1min">
                             <span class="period-name">1 min</span>
                             <span class="period-desc">LAeq 1 minuut</span>
                         </button>
-                        <button class="period-btn" data-period="5min" data-label="5 minuten">
+                        <button class="period-btn" data-period="5min">
                             <span class="period-name">5 min</span>
                             <span class="period-desc">LAeq 5 minuten</span>
                         </button>
-                        <button class="period-btn" data-period="15min" data-label="15 minuten">
+                        <button class="period-btn" data-period="15min">
                             <span class="period-name">15 min</span>
                             <span class="period-desc">LAeq 15 minuten</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Current Time Display -->
                 <div class="control-section">
                     <h3>Huidige Tijd</h3>
                     <div class="current-time" id="currentTime">--:--:--</div>
-                    <div style="text-align:center; font-size:12px; color: var(--text-secondary); margin-bottom:4px;" id="currentDate">--/--/----</div>
-                    <div class="time-period-indicator" id="timePeriodIndicator">—</div>
-                    <div class="preload-info" id="preloadInfo">Buffer: 0/0</div>
+                    <div style="text-align:center; font-size:12px; color: var(--text-secondary);" id="currentDate">--/--/----</div>
                 </div>
 
-                <!-- Timeline Control -->
                 <div class="control-section">
                     <h3>Tijdlijn</h3>
-                    <div class="timeline-control">
+                    <div style="margin-top: 16px;">
                         <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="100" value="0">
-                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-secondary); margin-top: 4px;">
-                            <span id="startTime">00:00:00</span>
-                            <span id="endTime">23:59:59</span>
-                        </div>
                     </div>
                 </div>
 
-                <!-- Playback Controls -->
                 <div class="control-section">
                     <h3>Afspeelcontroles</h3>
                     <div class="playback-controls">
-                        <button class="control-btn" id="prevBtn" title="Vorige">⏮</button>
-                        <button class="control-btn" id="playBtn" title="Afspelen/Pauze">▶</button>
-                        <button class="control-btn" id="pauseBtn" title="Pauze">⏸</button>
-                        <button class="control-btn" id="nextBtn" title="Volgende">⏭</button>
+                        <button class="control-btn" id="prevBtn">⏮</button>
+                        <button class="control-btn" id="playBtn">▶</button>
+                        <button class="control-btn" id="pauseBtn">⏸</button>
+                        <button class="control-btn" id="nextBtn">⏭</button>
                     </div>
                     
                     <div class="speed-controls">
@@ -863,7 +529,6 @@
                     </div>
                 </div>
 
-                <!-- Metadata Display -->
                 <div class="control-section">
                     <h3>Metadata</h3>
                     <div class="metadata-display">
@@ -873,23 +538,8 @@
                             <span class="meta-value" id="metaFilename">-</span>
                         </div>
                         <div class="meta-item">
-                            <span class="meta-label">Aantal meters:</span>
-                            <span class="meta-value" id="metaAantalMeters">-</span>
-                        </div>
-                        <div class="meta-item meta-item--block">
-                            <span class="meta-label">Actieve meters:</span>
-                            <span class="meta-value" id="metaMetersActief">-</span>
-                        </div>
-                        <div class="meta-item">
                             <span class="meta-label">Frame:</span>
                             <span class="meta-value" id="metaFrameNumber">-</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">
-                                <span class="status-indicator inactive" id="statusIndicator"></span>
-                                Status:
-                            </span>
-                            <span class="meta-value" id="metaStatus">Klaar</span>
                         </div>
                     </div>
                 </div>
@@ -898,11 +548,9 @@
             </div>
         </div>
 
-        <!-- Map Container -->
         <div class="map-container">
             <div id="map"></div>
             
-            <!-- Color Scale Selector -->
             <div class="color-scale-selector">
                 <label for="colorScaleSelect">Kleurenschaal</label>
                 <select id="colorScaleSelect">
@@ -912,68 +560,39 @@
                 </select>
             </div>
             
-            <!-- Legend -->
             <div class="legend">
                 <h4>Geluidsniveau (dB(A))</h4>
                 <div class="legend-gradient" id="legendGradient"></div>
-                <div class="legend-labels">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-secondary);">
                     <span>30 dB</span>
                     <span>60 dB</span>
                     <span>90 dB</span>
                 </div>
             </div>
-            
-            <!-- Hover tooltip for dB values -->
-            <div class="db-tooltip" id="dbTooltip">-- dB(A)</div>
 
             <div class="loading-overlay" id="loadingOverlay">
-                <div class="loading-content">
+                <div style="text-align: center;">
                     <div class="loading-spinner"></div>
-                    <div class="loading-text" id="loadingText">Laden...</div>
+                    <div id="loadingText" style="font-size: 14px; color: var(--text-primary); margin-top: 12px;">Laden...</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Leaflet JavaScript with integrity hash -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
     
-    <!-- GeoTIFF library -->
     <script src="https://cdn.jsdelivr.net/npm/geotiff@2.0.7/dist-browser/geotiff.js"></script>
-    
-    <!-- Proj4 for coordinate transformation -->
     <script src="https://cdn.jsdelivr.net/npm/proj4@2.9.0/dist/proj4.js"></script>
     
     <script>
-        // Wait for all libraries to load
-        window.addEventListener('load', function() {
-            console.log('=== APPLICATION STARTING ===');
-            console.log('Leaflet loaded:', typeof L !== 'undefined');
-            console.log('GeoTIFF loaded:', typeof GeoTIFF !== 'undefined');
-            console.log('Proj4 loaded:', typeof proj4 !== 'undefined');
-            
-            initializeApp();
-        });
-
-        // ═════════════════════════════════════════════════════════════════════════════════════════
-        // CONFIGURATIE — pas dit aan na het uploaden naar Cloudflare R2
-        // ═════════════════════════════════════════════════════════════════════════════════════════
         const R2_BASE_URL = 'https://pub-ec0c3469df3e4dac8e1524acce2b51d3.r2.dev';
-        // Mapstructuur op R2:
-        //   <R2_BASE_URL>/reeks1/1sec/index.json
-        //   <R2_BASE_URL>/reeks1/1sec/20240829_080000.tif
-        //   <R2_BASE_URL>/reeks1/1min/index.json
-        //   ... etc.
-        // ═════════════════════════════════════════════════════════════════════════════════════════
 
-        // Application State
         const state = {
-            // urlsByPeriod: bestandsnamen per periode (strings, geen File-objecten)
             urlsByPeriod: { '1sec': [], '1min': [], '5min': [], '15min': [] },
-            files: [],                  // actieve lijst ({ url, name }) voor huidige periode
-            currentDataset: null,       // '1' | '2' | '3'
+            files: [],
+            currentDataset: null,
             currentPeriod: '1sec',
             currentIndex: 0,
             isPlaying: false,
@@ -981,159 +600,301 @@
             playbackInterval: null,
             map: null,
             currentLayer: null,
-            meetpuntenLayer: null,
             colorScale: 'green-red',
             preloadedFrames: new Map(),
-            preloadBuffer: 10,           // kleiner buffer want bestanden komen via netwerk
-            isPreloading: false,
-            currentFrameData: null
         };
 
-        // Periode configuratie
+        const DATASET_MAP = {
+            '1': { folder: 'reeks1', date: '20240829' },
+            '2': { folder: 'reeks2', date: '20240830' },
+            '3': { folder: 'reeks3', date: '20240831' }
+        };
+
         const PERIODES = {
-            '1sec':  { label: '1 seconde',   mapFolder: '1sec',  showMeta: true  },
-            '1min':  { label: '1 minuut',     mapFolder: '1min',  showMeta: false },
-            '5min':  { label: '5 minuten',    mapFolder: '5min',  showMeta: false },
-            '15min': { label: '15 minuten',   mapFolder: '15min', showMeta: false },
+            '1sec': { label: '1 seconde', mapFolder: '1sec' },
+            '1min': { label: '1 minuut', mapFolder: '1min' },
+            '5min': { label: '5 minuten', mapFolder: '5min' },
+            '15min': { label: '15 minuten', mapFolder: '15min' },
         };
 
-        // Reeks namen (voor instructietekst)
-        const REEKS_INFO = {
-            '1': { naam: '29_augustus', datum: '29 augustus' },
-            '2': { naam: '30_augustus', datum: '30 augustus' },
-            '3': { naam: '31_augustus', datum: '31 augustus' },
-        };
+        window.addEventListener('load', function() {
+            console.log('Application starting...');
+            initializeApp();
+        });
 
-        // Meetpunten data (Lambert72 coördinaten)
-        const MEETPUNTEN = [
-            {x: 71010.6097279278, y: 168965.558979612, id: 7},
-            {x: 71220.2407584436, y: 168967.906480023, id: 6},
-            {x: 71327.2016836172, y: 168760.553152489, id: 2},
-            {x: 71126.4237642312, y: 168726.699899645, id: 8},
-            {x: 71292.6013676153, y: 168937.324912876, id: 1},
-            {x: 71392.4489936047, y: 169123.168637064, id: 3},
-            {x: 71550.7498435999, y: 169060.446805377, id: 4},
-            {x: 71777.7298113531, y: 168927.043583515, id: 5},
-            {x: 71508.7994454624, y: 168986.276527432, id: 0},
-            {x: 71721.1990307927, y: 169089.139871365, id: 9},
-            {x: 71001.5815167521, y: 168547.440893314, id: 10}
-        ];
-
-        // Constants voor Kortrijk
-        const KORTRIJK = {
-            center: [50.825180, 3.252618],
-            zoom: 16,
-            minZoom: 14,
-            maxZoom: 19,
-            bounds: [[50.818, 3.240], [50.835, 3.270]]
-        };
-
-        // Color scale definitions
-        const COLOR_SCALES = {
-            'green-red': {
-                name: 'Groen → Rood',
-                gradient: 'linear-gradient(to right, #00ff88, #ffff00, #ff8800, #ff0066)'
-            },
-            'blue-orange': {
-                name: 'Blauw → Oranje',
-                gradient: 'linear-gradient(to right, #0000ff, #4080ff, #ff8000, #ff4000)'
-            },
-            'black-white': {
-                name: 'Zwart → Wit',
-                gradient: 'linear-gradient(to right, #000000, #404040, #808080, #ffffff)'
-            }
-        };
-
-        // ═════════════════════════════════════════════════════════════════════════════════════════
-        // FUNCTIONS
-        // ═════════════════════════════════════════════════════════════════════════════════════════
-
-        // Update legend gradient based on current color scale
-        function updateLegendGradient() {
-            const gradient = COLOR_SCALES[state.colorScale].gradient;
-            const legendGradient = document.getElementById('legendGradient');
-            legendGradient.style.background = gradient;
-        }
-
-        // Color mapping function - GREEN to RED
-        function getColorForDB(db, minDB = 30, maxDB = 90) {
-            if (isNaN(db) || db === null || db === undefined) {
-                return 'rgba(0, 0, 0, 0)';
-            }
-        
-            const t = Math.max(0, Math.min(1, (db - minDB) / (maxDB - minDB)));
-        
-            let r, g, b;
-        
-            switch (state.colorScale) {
-        
-                case 'blue-orange':
-                    // blauw → oranje
-                    r = Math.floor(255 * t);
-                    g = Math.floor(128 * t);
-                    b = Math.floor(255 * (1 - t));
-                    break;
-        
-                case 'black-white':
-                    // zwart → wit
-                    r = g = b = Math.floor(255 * t);
-                    break;
-        
-                case 'green-red':
-                default:
-                    // originele schaal
-                    if (t < 0.33) {
-                        const tt = t / 0.33;
-                        r = Math.floor(tt * 255);
-                        g = 255;
-                        b = 0;
-                    } else if (t < 0.66) {
-                        const tt = (t - 0.33) / 0.33;
-                        r = 255;
-                        g = Math.floor(255 - tt * 119);
-                        b = 0;
-                    } else {
-                        const tt = (t - 0.66) / 0.34;
-                        r = 255;
-                        g = Math.floor(136 - tt * 136);
-                        b = Math.floor(tt * 102);
-                    }
-                    break;
-            }
-        
-            // transparantie behouden
-            return `rgba(${r}, ${g}, ${b}, 0.5)`;
-        }
-
-        // Load current frame (placeholder - replace with your implementation)
-        function loadCurrentFrame() {
-            console.log('Loading frame with color scale:', state.colorScale);
-            // Your frame loading logic here
-        }
-
-        // Initialize app
         function initializeApp() {
-            console.log('Initializing application...');
-            
-            // Initialize legend gradient
-            updateLegendGradient();
-            
-            // Color scale selector event listener
+            // Initialize map
+            state.map = L.map('map').setView([50.815, 3.261], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(state.map);
+
+            // Setup event listeners
+            document.querySelectorAll('.dataset-btn').forEach(btn => {
+                btn.addEventListener('click', onDatasetSelected);
+            });
+
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.addEventListener('click', onPeriodSelected);
+            });
+
+            document.getElementById('playBtn').addEventListener('click', togglePlay);
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                state.isPlaying = false;
+                if (state.playbackInterval) clearInterval(state.playbackInterval);
+            });
+            document.getElementById('nextBtn').addEventListener('click', nextFrame);
+            document.getElementById('prevBtn').addEventListener('click', prevFrame);
+            document.getElementById('timelineSlider').addEventListener('input', onTimelineChange);
+
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    state.playbackSpeed = parseFloat(e.target.dataset.speed);
+                });
+            });
+
             document.getElementById('colorScaleSelect').addEventListener('change', (e) => {
                 state.colorScale = e.target.value;
-                console.log('Color scale changed to:', state.colorScale);
-                
-                // Update legend gradient
-                updateLegendGradient();
-                
-                // Redraw current frame with new colors
-                if (state.currentIndex !== null && state.files.length > 0) {
-                    state.preloadedFrames.clear();
-                    loadCurrentFrame();
+                if (state.currentLayer && state.files.length > 0) {
+                    displayFrame(state.currentIndex);
                 }
             });
+
+            console.log('App initialized');
+        }
+
+        function onDatasetSelected(e) {
+            const dataset = e.target.closest('.dataset-btn').dataset.dataset;
+            state.currentDataset = dataset;
+
+            // Update UI
+            document.querySelectorAll('.dataset-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.closest('.dataset-btn').classList.add('active');
+            document.getElementById('periodSection').style.display = 'block';
+
+            // Load files for this dataset
+            loadDatasetFiles();
+        }
+
+        async function loadDatasetFiles() {
+            if (!state.currentDataset) return;
+
+            const datasetInfo = DATASET_MAP[state.currentDataset];
+            if (!datasetInfo) return;
+
+            showLoading(true);
+
+            try {
+                const period = state.currentPeriod;
+                const indexUrl = `${R2_BASE_URL}/${datasetInfo.folder}/${PERIODES[period].mapFolder}/index.json`;
+                
+                console.log('Loading from:', indexUrl);
+                const response = await fetch(indexUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load index: ${response.status}`);
+                }
+                
+                const index = await response.json();
+                console.log('Index loaded:', index);
+                
+                // Extract file URLs
+                state.files = (index.files || []).map(file => ({
+                    url: `${R2_BASE_URL}/${datasetInfo.folder}/${PERIODES[period].mapFolder}/${file}`,
+                    name: file
+                }));
+
+                console.log(`Loaded ${state.files.length} files`);
+
+                if (state.files.length > 0) {
+                    state.currentIndex = 0;
+                    await displayFrame(0);
+                    document.getElementById('timelineSlider').max = state.files.length - 1;
+                } else {
+                    showError('No files found for this dataset');
+                }
+            } catch (error) {
+                console.error('Error loading files:', error);
+                showError('Error loading dataset: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function onPeriodSelected(e) {
+            const period = e.target.closest('.period-btn').dataset.period;
+            state.currentPeriod = period;
+
+            // Update UI
+            document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.closest('.period-btn').classList.add('active');
+
+            // Reload files for new period
+            await loadDatasetFiles();
+        }
+
+        async function displayFrame(index) {
+            if (index < 0 || index >= state.files.length) return;
+
+            state.currentIndex = index;
+            const file = state.files[index];
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(file.url);
+                if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                const image = await tiff.getImage();
+                const data = await image.readRasters();
+                const bbox = image.getBoundingBox();
+
+                console.log('Image loaded:', file.name);
+
+                // Remove old layer
+                if (state.currentLayer) {
+                    state.map.removeLayer(state.currentLayer);
+                }
+
+                // Create canvas from raster data
+                const canvas = createCanvasFromRaster(data[0], image.getWidth(), image.getHeight());
+                const bounds = [[bbox[1], bbox[0]], [bbox[3], bbox[2]]];
+                
+                state.currentLayer = L.imageOverlay(canvas.toDataURL(), bounds).addTo(state.map);
+
+                // Update metadata
+                document.getElementById('metaFilename').textContent = file.name;
+                document.getElementById('metaFrameNumber').textContent = `${index + 1}/${state.files.length}`;
+                document.getElementById('timelineSlider').value = index;
+
+                updateLegend(data[0]);
+            } catch (error) {
+                console.error('Error displaying frame:', error);
+                showError('Error loading frame: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function createCanvasFromRaster(data, width, height) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.createImageData(width, height);
+            const pixelData = imageData.data;
+
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const range = max - min || 1;
+
+            for (let i = 0; i < data.length; i++) {
+                const normalized = (data[i] - min) / range;
+                const [r, g, b] = getColorForValue(normalized, state.colorScale);
+                
+                const pixelIndex = i * 4;
+                pixelData[pixelIndex] = r;
+                pixelData[pixelIndex + 1] = g;
+                pixelData[pixelIndex + 2] = b;
+                pixelData[pixelIndex + 3] = 255;
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            return canvas;
+        }
+
+        function getColorForValue(value, scale) {
+            if (scale === 'green-red') {
+                return [
+                    Math.round(value * 255),
+                    Math.round((1 - value) * 255),
+                    0
+                ];
+            } else if (scale === 'blue-orange') {
+                if (value < 0.5) {
+                    const t = value * 2;
+                    return [0, Math.round(128 + t * 127), 255];
+                } else {
+                    const t = (value - 0.5) * 2;
+                    return [Math.round(t * 255), Math.round(165 + t * 90), 0];
+                }
+            }
+            return [Math.round(value * 255), Math.round(value * 255), Math.round(value * 255)];
+        }
+
+        function updateLegend(data) {
+            const gradient = document.getElementById('legendGradient');
             
-            // ... rest of your initialization code ...
+            let colors = [];
+            if (state.colorScale === 'green-red') {
+                colors = ['#00FF00', '#FFFF00', '#FF0000'];
+            } else if (state.colorScale === 'blue-orange') {
+                colors = ['#0080FF', '#FF8000', '#FF0000'];
+            } else {
+                colors = ['#000000', '#808080', '#FFFFFF'];
+            }
+            
+            gradient.style.background = `linear-gradient(to right, ${colors.join(',')})`;
+        }
+
+        function onTimelineChange(e) {
+            displayFrame(parseInt(e.target.value));
+        }
+
+        function togglePlay() {
+            state.isPlaying = !state.isPlaying;
+            document.getElementById('playBtn').classList.toggle('active', state.isPlaying);
+
+            if (state.isPlaying) {
+                if (state.playbackInterval) clearInterval(state.playbackInterval);
+                state.playbackInterval = setInterval(() => {
+                    if (state.currentIndex < state.files.length - 1) {
+                        displayFrame(state.currentIndex + 1);
+                    } else {
+                        state.isPlaying = false;
+                        document.getElementById('playBtn').classList.remove('active');
+                        clearInterval(state.playbackInterval);
+                    }
+                }, 1000 / state.playbackSpeed);
+            } else {
+                if (state.playbackInterval) clearInterval(state.playbackInterval);
+            }
+        }
+
+        function nextFrame() {
+            if (state.currentIndex < state.files.length - 1) {
+                displayFrame(state.currentIndex + 1);
+            }
+        }
+
+        function prevFrame() {
+            if (state.currentIndex > 0) {
+                displayFrame(state.currentIndex - 1);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('show', show);
+        }
+
+        function showError(message) {
+            console.error(message);
+            const container = document.getElementById('errorContainer');
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                background: rgba(255, 0, 102, 0.1);
+                border: 2px solid #ff0066;
+                color: #ff0066;
+                padding: 12px;
+                margin: 12px 0;
+                font-size: 12px;
+                border-radius: 4px;
+            `;
+            errorDiv.textContent = message;
+            container.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
         }
     </script>
 </body>
