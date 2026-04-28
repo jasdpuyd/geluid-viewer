@@ -452,6 +452,50 @@
             color: var(--text-secondary);
         }
 
+        .color-scheme-selector {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .color-scheme-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .color-scheme-btn {
+            flex: 1;
+            background: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            padding: 8px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .color-scheme-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .color-scheme-btn.active {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            background: rgba(0, 255, 136, 0.08);
+        }
+
+        .legend-gradient.green-red {
+            background: linear-gradient(to right, #00ff88, #ffff00, #ff8800, #ff0066);
+        }
+
+        .legend-gradient.blue-orange {
+            background: linear-gradient(to right, #0088ff, #00ddff, #ffaa00, #ff6600);
+        }
+        
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -858,13 +902,24 @@
         <div class="map-container">
             <div id="map"></div>
             
-            <div class="legend">
+        <div class="legend">
                 <h4>Geluidsniveau (dB(A))</h4>
-                <div class="legend-gradient"></div>
+                <div class="legend-gradient green-red" id="legendGradient"></div>
                 <div class="legend-labels">
                     <span>30 dB</span>
                     <span>60 dB</span>
                     <span>90 dB</span>
+                </div>
+                
+                <div class="color-scheme-selector">
+                    <div class="color-scheme-buttons">
+                        <button class="color-scheme-btn active" data-scheme="green-red">
+                            Groen-Rood
+                        </button>
+                        <button class="color-scheme-btn" data-scheme="blue-orange">
+                            Blauw-Oranje
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -930,7 +985,8 @@
             preloadedFrames: new Map(),
             preloadBuffer: 10,           // kleiner buffer want bestanden komen via netwerk
             isPreloading: false,
-            currentFrameData: null
+            currentFrameData: null,
+            colorScheme: 'green-red'     // 'green-red' | 'blue-orange'
         };
 
         // Periode configuratie
@@ -1096,30 +1152,75 @@
             const normalized = Math.max(0, Math.min(1, (db - minDB) / (maxDB - minDB)));
             
             let r, g, b;
-            if (normalized < 0.33) {
-                // Green to Yellow
-                const t = normalized / 0.33;
-                r = Math.floor(t * 255);
-                g = 255;
-                b = 0;
-            } else if (normalized < 0.66) {
-                // Yellow to Orange
-                const t = (normalized - 0.33) / 0.33;
-                r = 255;
-                g = Math.floor(255 - t * 119);
-                b = 0;
-            } else {
-                // Orange to Red
-                const t = (normalized - 0.66) / 0.34;
-                r = 255;
-                g = Math.floor(136 - t * 136);
-                b = Math.floor(t * 102);
+            
+            if (state.colorScheme === 'green-red') {
+                // Green to Yellow to Orange to Red
+                if (normalized < 0.33) {
+                    const t = normalized / 0.33;
+                    r = Math.floor(t * 255);
+                    g = 255;
+                    b = 0;
+                } else if (normalized < 0.66) {
+                    const t = (normalized - 0.33) / 0.33;
+                    r = 255;
+                    g = Math.floor(255 - t * 119);
+                    b = 0;
+                } else {
+                    const t = (normalized - 0.66) / 0.34;
+                    r = 255;
+                    g = Math.floor(136 - t * 136);
+                    b = Math.floor(t * 102);
+                }
+            } else if (state.colorScheme === 'blue-orange') {
+                // Blue to Cyan to Orange to Dark Orange
+                if (normalized < 0.33) {
+                    const t = normalized / 0.33;
+                    r = Math.floor(t * 0);
+                    g = Math.floor(136 + t * 85);
+                    b = 255;
+                } else if (normalized < 0.66) {
+                    const t = (normalized - 0.33) / 0.33;
+                    r = Math.floor(t * 255);
+                    g = Math.floor(221 - t * 51);
+                    b = Math.floor(255 - t * 255);
+                } else {
+                    const t = (normalized - 0.66) / 0.34;
+                    r = 255;
+                    g = Math.floor(170 - t * 68);
+                    b = 0;
+                }
             }
             
             // REDUCED opacity in the color itself for better map visibility
             return `rgba(${r}, ${g}, ${b}, 0.5)`;
         }
 
+        // Rerender current frame with new color scheme
+        async function rerenderCurrentFrame() {
+            if (!state.currentFrameData || state.files.length === 0) return;
+            
+            console.log('Rerendering frame with new color scheme:', state.colorScheme);
+            
+            try {
+                // Clear the preloaded cache - all frames need to be rerendered
+                state.preloadedFrames.clear();
+                
+                // Reprocess current frame with new color scheme
+                const file = state.files[state.currentIndex];
+                const frameData = await processTIFFile(file);
+                state.preloadedFrames.set(state.currentIndex, frameData);
+                
+                displayFrame(frameData);
+                
+                // Preload upcoming frames with new color scheme
+                setTimeout(() => preloadFrames(), 100);
+                
+            } catch (error) {
+                console.error('ERROR rerendering frame:', error);
+                showError('Fout bij opnieuw renderen: ' + error.message);
+            }
+        }
+        
         // Lees TIFF tag 42112 (GDAL_METADATA) direct uit de raw bytes
         // Getest tegen het echte bestand: IFD offset=130294, tag 42112 offset=130808
         function extractTag42112FromBuffer(arrayBuffer) {
@@ -1635,6 +1736,30 @@ function startPlayback() {
                 });
             });
 
+            // ── KLEURENSCHAAL-knoppen ─────────────────────────────────────
+            document.querySelectorAll('.color-scheme-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const scheme = btn.dataset.scheme;
+                    if (scheme === state.colorScheme) return;
+                    
+                    // Update active button
+                    document.querySelectorAll('.color-scheme-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Update legend gradient
+                    const legendGradient = document.getElementById('legendGradient');
+                    legendGradient.className = `legend-gradient ${scheme}`;
+                    
+                    // Update state
+                    state.colorScheme = scheme;
+                    
+                    // Rerender current frame with new color scheme
+                    await rerenderCurrentFrame();
+                    
+                    showSuccess(`Kleurenschaal: ${scheme === 'green-red' ? 'Groen-Rood' : 'Blauw-Oranje'}`);
+                });
+            });
+            
             // ── PERIODE-knoppen ───────────────────────────────────────────
             document.querySelectorAll('.period-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
