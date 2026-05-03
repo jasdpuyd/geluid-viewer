@@ -2288,13 +2288,13 @@ function startPlayback() {
             const floorMat  = new THREE.MeshLambertMaterial({ color: 0x141922 });
             const floorMesh = new THREE.Mesh(floorGeo, floorMat);
             floorMesh.rotation.x = -Math.PI / 2;
+            floorMesh.position.y = -0.5;   // iets onder de staven zodat kaart zichtbaar is
             floorMesh.receiveShadow = true;
             scene.add(floorMesh);
 
-            // Grid overlay on floor
-            const gridHelper = new THREE.GridHelper(250, 40, 0x1e2a3a, 0x1e2a3a);
-            gridHelper.position.y = 0.1;
-            scene.add(gridHelper);
+            // Geen grid — kaart is de vloer
+            // const gridHelper = new THREE.GridHelper(250, 40, 0x1e2a3a, 0x1e2a3a);
+            // scene.add(gridHelper);
 
             // ── ORBIT CONTROLS (manual, no import needed) ────────────
             const mouse = { down: false, right: false, x: 0, y: 0, startX: 0, startY: 0 };
@@ -2488,7 +2488,7 @@ function startPlayback() {
 
             // ── Build instanced bars ─────────────────────────────────
             // Use InstancedMesh for performance (42k instances)
-            const barGeo = new THREE.BoxGeometry(cellW * 0.88, 1, cellH * 0.88);
+            const barGeo = new THREE.BoxGeometry(cellW * 0.72, 1, cellH * 0.72);
             // We'll use vertex colors via instance color
             const barMat = new THREE.MeshLambertMaterial({ vertexColors: false });
 
@@ -2506,7 +2506,7 @@ function startPlayback() {
                 for (let col = 0; col < W; col++) {
                     const db = raster[row * W + col];
                     const norm = Math.max(0, Math.min(1, (db - minDB) / (maxDB - minDB)));
-                    const barH = Math.max(0.5, norm * maxBarHeight);
+                    const barH = Math.max(0.1, norm * maxBarHeight);
 
                     // Position: center of each cell
                     const x = -worldW / 2 + col * cellW + cellW / 2;
