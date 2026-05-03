@@ -2293,8 +2293,6 @@ function startPlayback() {
             scene.add(floorMesh);
 
             // Geen grid — kaart is de vloer
-            // const gridHelper = new THREE.GridHelper(250, 40, 0x1e2a3a, 0x1e2a3a);
-            // scene.add(gridHelper);
 
             // ── ORBIT CONTROLS (manual, no import needed) ────────────
             const mouse = { down: false, right: false, x: 0, y: 0, startX: 0, startY: 0 };
@@ -2424,8 +2422,7 @@ function startPlayback() {
             });
 
             state.three = {
-                renderer, scene, camera, floorMesh, gridHelper,
-                barsGroup: null, floorTexture: null,
+                renderer, scene, camera, floorMesh, barsGroup: null, floorTexture: null,
                 updateCamera, animId: null,
                 theta, phi, radius, target
             };
