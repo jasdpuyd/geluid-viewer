@@ -2166,11 +2166,9 @@ function startPlayback() {
                 if (state.three && floorMesh) {
                     if (state.three.floorTexture) state.three.floorTexture.dispose();
                     const tex = new THREE.CanvasTexture(canvas);
-                    tex.needsUpdate = true;
                     state.three.floorTexture = tex;
                     floorMesh.material.dispose();
                     floorMesh.material = new THREE.MeshLambertMaterial({ map: tex });
-                    floorMesh.material.needsUpdate = true;
                     console.log('Tile floor texture applied ✓');
                 }
             }
@@ -2286,7 +2284,7 @@ function startPlayback() {
             scene.add(rimLight);
 
             // Floor plane placeholder — replaced when frame loads
-            const floorGeo  = new THREE.PlaneGeometry(250, 200);
+            const floorGeo  = new THREE.PlaneGeometry(900, 750);
             const floorMat  = new THREE.MeshLambertMaterial({ color: 0x141922 });
             const floorMesh = new THREE.Mesh(floorGeo, floorMat);
             floorMesh.rotation.x = -Math.PI / 2;
@@ -2479,7 +2477,7 @@ function startPlayback() {
                 floorMesh.material.dispose();
                 floorMesh.material = new THREE.MeshLambertMaterial({ map: tex });
                 floorMesh.geometry.dispose();
-                floorMesh.geometry = new THREE.PlaneGeometry(worldW, worldH);
+                floorMesh.geometry = new THREE.PlaneGeometry(900, 750);
             }
 
             // Then: attempt to load real map tiles async (browser CORS allows this)
