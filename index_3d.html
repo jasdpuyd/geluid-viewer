@@ -951,6 +951,35 @@
                 background: #0a0e17;
             ">
                 <canvas id="threeCanvas" style="width:100%;height:100%;display:block;"></canvas>
+                <!-- Inset 2D map (linksboven in 2.5D) -->
+                <div id="insetMapContainer" style="
+                    position: absolute;
+                    top: 20px;
+                    left: 20px;
+                    width: 220px;
+                    height: 165px;
+                    z-index: 600;
+                    border: 2px solid #2a3244;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+                    overflow: hidden;
+                    display: none;
+                    border-radius: 4px;
+                ">
+                    <!-- Label -->
+                    <div style="
+                        position: absolute;
+                        bottom: 0; left: 0; right: 0;
+                        background: rgba(10,14,23,0.75);
+                        font-family: 'JetBrains Mono', monospace;
+                        font-size: 9px;
+                        color: #8892a6;
+                        letter-spacing: 1px;
+                        padding: 3px 7px;
+                        z-index: 2;
+                        pointer-events: none;
+                    ">OVERZICHTSKAART</div>
+                </div>
+
                 <!-- Camera controls hint -->
                 <div style="
                     position: absolute;
@@ -1526,6 +1555,8 @@
             
             // ── 2.5D: update Three.js scene ─────────────────────────
             if (state.viewMode === '25d') {
+                // Houd inzetkaart-overlay op lage opacity
+                if (state.currentLayer) state.currentLayer.setOpacity(0.45);
                 if (!state.three) initThreeJS();
                 updateThreeScene(frameData);
                 // Ensure render loop is running
@@ -2195,7 +2226,15 @@ function startPlayback() {
             if (mode === '2d') {
                 Object.assign(btn2D.style,  activeStyle);
                 Object.assign(btn25D.style, inactiveStyle);
-                mapEl.style.display    = '';
+                // Zet de kaart terug op zijn originele plek
+                const mapContainer = document.querySelector('.map-container');
+                mapContainer.insertBefore(mapEl, document.getElementById('viewToggleBtn'));
+                mapEl.style.width    = '100%';
+                mapEl.style.height   = '100%';
+                mapEl.style.position = 'relative';
+                mapEl.style.top      = '';
+                mapEl.style.left     = '';
+                document.getElementById('insetMapContainer').style.display = 'none';
                 threeEl.style.display  = 'none';
                 legend.style.display   = '';
                 tooltip.style.display  = 'none';
@@ -2204,6 +2243,8 @@ function startPlayback() {
                     cancelAnimationFrame(state.three.animId);
                     state.three.loopRunning = false;
                 }
+                // Herstel overlay opacity voor 2D
+                if (state.currentLayer) state.currentLayer.setOpacity(0.75);
                 // Restore 2D overlay if we have frame data
                 if (state.currentFrameData) {
                     try {
@@ -2220,10 +2261,21 @@ function startPlayback() {
             } else {
                 Object.assign(btn25D.style, activeStyle);
                 Object.assign(btn2D.style,  inactiveStyle);
-                mapEl.style.display    = 'none';
+                // Verplaats de kaart naar het inzetvenster
+                const inset = document.getElementById('insetMapContainer');
+                inset.appendChild(mapEl);
+                mapEl.style.width    = '100%';
+                mapEl.style.height   = '100%';
+                mapEl.style.position = 'absolute';
+                mapEl.style.top      = '0';
+                mapEl.style.left     = '0';
+                // Overlay opacity verlagen voor inzetkaart
+                if (state.currentLayer) state.currentLayer.setOpacity(0.45);
+                inset.style.display  = '';
                 threeEl.style.display  = '';
                 legend.style.display   = '';
                 tooltip.style.display  = 'none';
+                setTimeout(() => state.map.invalidateSize(), 50);
                 if (!state.three) initThreeJS();
                 if (state.currentFrameData) {
                     updateThreeScene(state.currentFrameData);
@@ -2487,7 +2539,7 @@ function startPlayback() {
             // Use InstancedMesh for performance (42k instances)
             const barGeo = new THREE.BoxGeometry(cellW * 0.72, 1, cellH * 0.72);
             // We'll use vertex colors via instance color
-            const barMat = new THREE.MeshLambertMaterial({ vertexColors: false, transparent: true, opacity: 0.8});
+            const barMat = new THREE.MeshLambertMaterial({ vertexColors: false, transparent: true, opacity: 0.75 });
 
             const count = W * H;
             const mesh  = new THREE.InstancedMesh(barGeo, barMat, count);
