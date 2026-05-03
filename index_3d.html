@@ -2487,7 +2487,7 @@ function startPlayback() {
             // Use InstancedMesh for performance (42k instances)
             const barGeo = new THREE.BoxGeometry(cellW * 0.72, 1, cellH * 0.72);
             // We'll use vertex colors via instance color
-            const barMat = new THREE.MeshLambertMaterial({ vertexColors: false, transparent: true, opacity: 0.75});
+            const barMat = new THREE.MeshLambertMaterial({ vertexColors: false, transparent: true, opacity: 0.25});
 
             const count = W * H;
             const mesh  = new THREE.InstancedMesh(barGeo, barMat, count);
