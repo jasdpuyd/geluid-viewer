@@ -2092,13 +2092,12 @@ function startPlayback() {
             // Dark background while tiles load
             ctx.fillStyle = '#141922';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             const total = cols * rows;
 
             // ── Strategie 1: samengesteld kaartbestand (GitHub) ─
             // Zodra map/kaart.jpg beschikbaar is in je repo, werkt dit automatisch.
             const TILE_MAP_SRC = 'maptiles/kaart.jpg';
-            let loaded = 0;
 
             const mapImg = new Image();
             mapImg.crossOrigin = 'anonymous';
