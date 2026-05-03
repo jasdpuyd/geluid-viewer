@@ -2096,7 +2096,7 @@ function startPlayback() {
             const total = cols * rows;
 
             // ── Strategie 1: samengesteld kaartbestand (GitHub) ─
-            // Zodra map/kaart.jpg beschikbaar is in je repo, werkt dit automatisch.
+            // Zodra maptiles/kaart.jpg beschikbaar is in je repo, werkt dit automatisch.
             const TILE_MAP_SRC = 'maptiles/kaart.jpg';
 
             const mapImg = new Image();
@@ -2111,10 +2111,10 @@ function startPlayback() {
                 // Kaartbestand gevonden — teken het op het canvas
                 ctx.drawImage(mapImg, 0, 0, canvas.width, canvas.height);
                 loaded = total;
-                console.log('Kaartbestand geladen via map/kaart.jpg ✓');
+                console.log('Kaartbestand geladen via maptiles/kaart.jpg ✓');
             } else {
                 // Fallback: haal losse tiles op van het CDN
-                console.log('map/kaart.jpg niet gevonden, val terug op CDN-tiles...');
+                console.log('maptiles/kaart.jpg niet gevonden, val terug op CDN-tiles...');
                 const promises = [];
                 for (let x = xMin; x <= xMax; x++) {
                     for (let y = yMin; y <= yMax; y++) {
