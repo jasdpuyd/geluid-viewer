@@ -769,9 +769,198 @@
         .leaflet-container {
             background: #1a1a2e !important;
         }
+        /* ═══════════════════════════════════════════════════════════════
+           TUTORIAL STYLING
+           ═══════════════════════════════════════════════════════════════ */
+        
+        /* Tutorial overlay - donkere achtergrond */
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 14, 23, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tutorial-overlay.show {
+            display: flex;
+        }
+        
+        /* Tutorial modal box */
+        .tutorial-modal {
+            background: var(--bg-panel);
+            border: 2px solid var(--accent-primary);
+            max-width: 500px;
+            width: 90%;
+            padding: 32px;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
+            animation: tutorialSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes tutorialSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Tutorial header */
+        .tutorial-header {
+            margin-bottom: 24px;
+        }
+        
+        .tutorial-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+        
+        .tutorial-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        /* Progress indicator (X/7) */
+        .tutorial-progress {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-dark);
+            border: 2px solid var(--accent-primary);
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            letter-spacing: 1px;
+        }
+        
+        /* Tutorial content */
+        .tutorial-content {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text-primary);
+            margin-bottom: 28px;
+        }
+        
+        /* Tutorial buttons */
+        .tutorial-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .tutorial-btn {
+            padding: 12px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid var(--border-color);
+            background: transparent;
+            color: var(--text-primary);
+        }
+        
+        .tutorial-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tutorial-btn.primary {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: var(--bg-dark);
+        }
+        
+        .tutorial-btn.primary:hover {
+            background: #00dd77;
+            border-color: #00dd77;
+        }
+        
+        .tutorial-btn.secondary {
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+        
+        .tutorial-btn.secondary:hover {
+            background: rgba(255, 0, 102, 0.1);
+        }
+        
+        /* Highlight effect voor tutorial stappen */
+        .tutorial-highlight {
+            position: relative;
+            z-index: 10000 !important;
+        }
+        
+        .tutorial-highlight::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 3px solid var(--accent-secondary);
+            pointer-events: none;
+            animation: tutorialPulse 2s infinite;
+            z-index: 10001;
+        }
+        
+        @keyframes tutorialPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 0, 102, 0.7);
+                border-color: var(--accent-secondary);
+            }
+            50% {
+                box-shadow: 0 0 20px 10px rgba(255, 0, 102, 0.3);
+                border-color: var(--accent-primary);
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- ═══════════════════════════════════════════════════════════════
+     TUTORIAL OVERLAY
+     ═══════════════════════════════════════════════════════════════ -->
+    <div class="tutorial-overlay" id="tutorialOverlay">
+        <div class="tutorial-modal" id="tutorialModal">
+            <!-- Progress indicator (alleen zichtbaar tijdens stappen, niet op welkomst) -->
+            <div class="tutorial-progress" id="tutorialProgress" style="display: none;">
+                <span id="tutorialStepNumber">1</span>/7
+            </div>
+            
+            <div class="tutorial-header">
+                <h2 class="tutorial-title" id="tutorialTitle">Welkom op Sound Viewer</h2>
+                <p class="tutorial-subtitle" id="tutorialSubtitle">
+                    Wil je een tutorial volgen om de webtool te ontdekken?
+                </p>
+            </div>
+            
+            <div class="tutorial-content" id="tutorialContent">
+                <!-- Content wordt dynamisch ingevuld -->
+            </div>
+            
+            <div class="tutorial-buttons" id="tutorialButtons">
+                <!-- Buttons worden dynamisch ingevuld -->
+            </div>
+        </div>
+    </div>
     <div class="app-container">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -782,7 +971,7 @@
             
             <div class="sidebar-content">
                 <!-- Stap 1: Dag kiezen -->
-                <div class="control-section">
+                <div class="control-section" id="tutorialStep1">
                     <h3>Stap 1 — Dag</h3>
                     <div class="dataset-buttons">
                         <button class="dataset-btn" data-dataset="1">
@@ -801,7 +990,7 @@
                 </div>
 
                 <!-- Stap 2: Tijdsperiode kiezen (verschijnt na dagkeuze) -->
-                <div class="control-section" id="periodSection" style="display:none;">
+                <div class="control-section" id="tutorialStep2" id="periodSection" style="display:none;">
                     <h3>Stap 2 — Tijdsperiode</h3>
                     <div class="period-buttons">
                         <button class="period-btn active" data-period="1sec" data-label="1 seconde">
@@ -833,7 +1022,7 @@
                 </div>
 
                 <!-- Timeline Control -->
-                <div class="control-section">
+                <div class="control-section" id="tutorialStep2">
                     <h3>Tijdlijn</h3>
                     <div class="timeline-control">
                         <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="100" value="0">
@@ -845,7 +1034,7 @@
                 </div>
 
                 <!-- Playback Controls -->
-                <div class="control-section">
+                <div class="control-section" id="tutorialStep3">
                     <h3>Afspeelcontroles</h3>
                     <div class="playback-controls">
                         <button class="control-btn" id="prevBtn" title="Vorige">⏮</button>
@@ -864,7 +1053,7 @@
                 </div>
 
                 <!-- Metadata Display -->
-                <div class="control-section">
+                <div class="control-section" id="tutorialStep4">
                     <h3>Metadata</h3>
                     <div class="metadata-display">
                         <h4>Huidige Frame</h4>
@@ -900,9 +1089,9 @@
 
         <!-- Map Container -->
         <div class="map-container">
-            <div id="map"></div>
+            <div id="map" class="tutorialStep6"></div>
             <!-- View Toggle Button -->
-            <div id="viewToggleBtn" style="
+            <div id="viewToggleBtn" class="tutorialStep7" style="
                 position: absolute;
                 top: 16px;
                 left: 50%;
@@ -1001,7 +1190,7 @@
                 </div>
             </div>
             
-        <div class="legend">
+        <div class="legend" id="tutorialStep5">
                 <h4>Geluidsniveau (dB(A))</h4>
                 <div class="legend-gradient green-red" id="legendGradient"></div>
                 <div class="legend-labels">
@@ -1056,8 +1245,191 @@
             console.log('Proj4 loaded:', typeof proj4 !== 'undefined');
             
             initializeApp();
+                // Start tutorial after a short delay
+                setTimeout(() => {
+                    initTutorial();
+                }, 500);
         });
 
+        // ═══════════════════════════════════════════════════════════════
+        // TUTORIAL SYSTEM
+        // ═══════════════════════════════════════════════════════════════
+        
+        const TUTORIAL_STEPS = [
+            {
+                title: 'Welkom op Sound Viewer',
+                subtitle: 'Wil je een tutorial volgen om de webtool te ontdekken?',
+                content: '',
+                buttons: [
+                    { text: 'Sla over', class: 'secondary', action: 'skip' },
+                    { text: 'Volg tutorial', class: 'primary', action: 'start' }
+                ],
+                highlight: null,
+                isWelcome: true
+            },
+            {
+                title: 'Stap 1: Dag selecteren',
+                content: 'Kies een dag waarvan je de geluidsdata wil bekijken.',
+                highlight: 'tutorialStep1',
+                buttons: [
+                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
+                    { text: 'Volgende →', class: 'primary', action: 'next' }
+                ]
+            },
+            {
+                title: 'Stap 2: Tijdstip kiezen',
+                content: 'Gebruik de slider om een tijdstip te kiezen.',
+                highlight: 'tutorialStep2',
+                buttons: [
+                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
+                    { text: 'Volgende →', class: 'primary', action: 'next' }
+                ]
+            },
+            {
+                title: 'Stap 3: Afspelen',
+                content: 'Gebruik deze knopjes om de rasters te laten afspelen alsof het een video zou zijn.',
+                highlight: 'tutorialStep3',
+                buttons: [
+                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
+                    { text: 'Volgende →', class: 'primary', action: 'next' }
+                ]
+            },
+            {
+                title: 'Stap 4: Metadata',
+                content: 'Hier zie je de metadata van het raster dat gevisualiseerd wordt.',
+                highlight: 'tutorialStep4',
+                buttons: [
+                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
+                    { text: 'Volgende →', class: 'primary', action: 'next' }
+                ]
+            },
+            {
+                title: 'Stap 5: Kleurenschaal',
+                content: 'Pas hier de kleurenschaal aan.',
+                highlight: 'tutorialStep5',
+                buttons: [
+                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
+                    { text: 'Volgende →', class: 'primary', action: 'next' }
+                ]
+            },
+            {
+                title: 'Stap 6: Kaart navigatie',
+                content: 'Zoom hier in en uit op de kaart. Je kan ook slepen om de kaart te verplaatsen.',
+                highlight: 'tutorialStep6',
+                buttons: [
+                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
+                    { text: 'Volgende →', class: 'primary', action: 'next' }
+                ]
+            },
+            {
+                title: 'Stap 7: Visualisatie',
+                content: 'Kies hier voor de 2D- of 2.5D-visualisatie.',
+                highlight: 'tutorialStep7',
+                buttons: [
+                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
+                    { text: 'Afronden →', class: 'primary', action: 'finish' }
+                ]
+            }
+        ];
+        
+        let currentTutorialStep = 0;
+        
+        function initTutorial() {
+            const tutorialCompleted = localStorage.getItem('soundViewerTutorialCompleted');
+            if (!tutorialCompleted) {
+                showTutorialStep(0);
+            }
+        }
+        
+        function showTutorialStep(stepIndex) {
+            const step = TUTORIAL_STEPS[stepIndex];
+            const overlay = document.getElementById('tutorialOverlay');
+            const title = document.getElementById('tutorialTitle');
+            const subtitle = document.getElementById('tutorialSubtitle');
+            const content = document.getElementById('tutorialContent');
+            const buttons = document.getElementById('tutorialButtons');
+            const progress = document.getElementById('tutorialProgress');
+            const stepNumber = document.getElementById('tutorialStepNumber');
+        
+            clearTutorialHighlights();
+        
+            title.textContent = step.title;
+            
+            if (step.isWelcome) {
+                subtitle.style.display = '';
+                subtitle.textContent = step.subtitle;
+                content.style.display = 'none';
+                progress.style.display = 'none';
+            } else {
+                subtitle.style.display = 'none';
+                content.style.display = '';
+                content.textContent = step.content;
+                progress.style.display = '';
+                stepNumber.textContent = stepIndex;
+            }
+        
+            buttons.innerHTML = '';
+            step.buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = `tutorial-btn ${btn.class}`;
+                button.textContent = btn.text;
+                button.onclick = () => handleTutorialAction(btn.action);
+                buttons.appendChild(button);
+            });
+        
+            overlay.classList.add('show');
+        
+            if (step.highlight) {
+                setTimeout(() => highlightElement(step.highlight), 100);
+            }
+        
+            currentTutorialStep = stepIndex;
+        }
+        
+        function handleTutorialAction(action) {
+            switch(action) {
+                case 'skip':
+                    closeTutorial(true);
+                    break;
+                case 'start':
+                    showTutorialStep(1);
+                    break;
+                case 'next':
+                    if (currentTutorialStep < TUTORIAL_STEPS.length - 1) {
+                        showTutorialStep(currentTutorialStep + 1);
+                    }
+                    break;
+                case 'finish':
+                    closeTutorial(true);
+                    showSuccess('Tutorial afgerond! Je kan nu de tool gebruiken.');
+                    break;
+            }
+        }
+        
+        function closeTutorial(markCompleted = false) {
+            const overlay = document.getElementById('tutorialOverlay');
+            overlay.classList.remove('show');
+            clearTutorialHighlights();
+            
+            if (markCompleted) {
+                localStorage.setItem('soundViewerTutorialCompleted', 'true');
+            }
+        }
+        
+        function highlightElement(elementId) {
+            const element = document.getElementById(elementId) || document.querySelector(`.${elementId}`);
+            if (element) {
+                element.classList.add('tutorial-highlight');
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        
+        function clearTutorialHighlights() {
+            document.querySelectorAll('.tutorial-highlight').forEach(el => {
+                el.classList.remove('tutorial-highlight');
+            });
+        }
+        
         // ═══════════════════════════════════════════════════════════════
         // CONFIGURATIE — pas dit aan na het uploaden naar Cloudflare R2
         // ═══════════════════════════════════════════════════════════════
