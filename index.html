@@ -769,45 +769,57 @@
         .leaflet-container {
             background: #1a1a2e !important;
         }
-        /* ═══════════════════════════════════════════════════════════════
-           TUTORIAL STYLING
+       /* ═══════════════════════════════════════════════════════════════
+           TUTORIAL STYLING - SPOTLIGHT VERSION
            ═══════════════════════════════════════════════════════════════ */
         
-        /* Tutorial overlay - donkere achtergrond */
+        /* Dark overlay voor spotlight effect */
         .tutorial-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(10, 14, 23, 0.92);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
+            background: rgba(10, 14, 23, 0.85);
+            z-index: 9998;
             display: none;
-            align-items: center;
-            justify-content: center;
+            pointer-events: none;
         }
         
         .tutorial-overlay.show {
-            display: flex;
+            display: block;
         }
         
-        /* Tutorial modal box */
-        .tutorial-modal {
+        /* Spotlight cutout - het gehighlighte element */
+        .tutorial-spotlight {
+            position: fixed;
+            pointer-events: auto;
+            z-index: 10000;
+            box-shadow: 0 0 0 9999px rgba(10, 14, 23, 0.85);
+            transition: all 0.4s ease;
+        }
+        
+        /* Tutorial pop-up box (naast het element) */
+        .tutorial-popup {
+            position: fixed;
             background: var(--bg-panel);
             border: 2px solid var(--accent-primary);
-            max-width: 500px;
-            width: 90%;
-            padding: 32px;
-            position: relative;
-            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
-            animation: tutorialSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 380px;
+            padding: 24px;
+            z-index: 10001;
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.4);
+            animation: tutorialSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+        }
+        
+        .tutorial-popup.show {
+            display: block;
         }
         
         @keyframes tutorialSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
+                transform: translateY(-10px);
             }
             to {
                 opacity: 1;
@@ -815,64 +827,84 @@
             }
         }
         
-        /* Tutorial header */
-        .tutorial-header {
-            margin-bottom: 24px;
-        }
-        
-        .tutorial-title {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 12px;
-        }
-        
-        .tutorial-subtitle {
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-        
-        /* Progress indicator (X/7) */
-        .tutorial-progress {
+        /* Arrow pointing naar het element */
+        .tutorial-popup::before {
+            content: '';
             position: absolute;
-            top: 20px;
-            right: 20px;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+        }
+        
+        /* Arrow posities - afhankelijk van waar de popup staat */
+        .tutorial-popup.arrow-left::before {
+            left: -20px;
+            top: 24px;
+            border-right-color: var(--accent-primary);
+        }
+        
+        .tutorial-popup.arrow-right::before {
+            right: -20px;
+            top: 24px;
+            border-left-color: var(--accent-primary);
+        }
+        
+        .tutorial-popup.arrow-top::before {
+            top: -20px;
+            left: 24px;
+            border-bottom-color: var(--accent-primary);
+        }
+        
+        .tutorial-popup.arrow-bottom::before {
+            bottom: -20px;
+            left: 24px;
+            border-top-color: var(--accent-primary);
+        }
+        
+        /* Progress indicator */
+        .tutorial-progress {
             background: var(--bg-dark);
             border: 2px solid var(--accent-primary);
-            padding: 6px 12px;
-            font-size: 12px;
+            padding: 4px 10px;
+            font-size: 11px;
             font-weight: 700;
             color: var(--accent-primary);
             letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        
+        /* Tutorial title */
+        .tutorial-title {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--accent-primary);
+            margin-bottom: 12px;
         }
         
         /* Tutorial content */
         .tutorial-content {
-            font-size: 15px;
-            line-height: 1.7;
+            font-size: 14px;
+            line-height: 1.6;
             color: var(--text-primary);
-            margin-bottom: 28px;
+            margin-bottom: 20px;
         }
         
         /* Tutorial buttons */
         .tutorial-buttons {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: flex-end;
         }
         
         .tutorial-btn {
-            padding: 12px 24px;
+            padding: 10px 18px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             border: 2px solid var(--border-color);
             background: transparent;
             color: var(--text-primary);
@@ -880,7 +912,6 @@
         
         .tutorial-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
         
         .tutorial-btn.primary {
@@ -897,70 +928,98 @@
         .tutorial-btn.secondary {
             border-color: var(--accent-secondary);
             color: var(--accent-secondary);
+            font-size: 11px;
         }
         
         .tutorial-btn.secondary:hover {
             background: rgba(255, 0, 102, 0.1);
         }
         
-        /* Highlight effect voor tutorial stappen */
-        .tutorial-highlight {
-            position: relative;
-            z-index: 10000 !important;
-        }
-        
-        .tutorial-highlight::after {
-            content: '';
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
-            border: 3px solid var(--accent-secondary);
-            pointer-events: none;
-            animation: tutorialPulse 2s infinite;
-            z-index: 10001;
-        }
-        
-        @keyframes tutorialPulse {
+        /* Pulse animatie voor spotlight */
+        @keyframes spotlightPulse {
             0%, 100% {
-                box-shadow: 0 0 0 0 rgba(255, 0, 102, 0.7);
-                border-color: var(--accent-secondary);
+                box-shadow: 0 0 0 9999px rgba(10, 14, 23, 0.85),
+                            0 0 20px 4px rgba(0, 255, 136, 0.4);
             }
             50% {
-                box-shadow: 0 0 20px 10px rgba(255, 0, 102, 0.3);
-                border-color: var(--accent-primary);
+                box-shadow: 0 0 0 9999px rgba(10, 14, 23, 0.85),
+                            0 0 30px 8px rgba(0, 255, 136, 0.6);
             }
+        }
+        
+        .tutorial-spotlight {
+            animation: spotlightPulse 2s infinite;
+        }
+        
+        /* Welkomst modal (center screen) */
+        .tutorial-welcome {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-panel);
+            border: 2px solid var(--accent-primary);
+            max-width: 500px;
+            width: 90%;
+            padding: 32px;
+            z-index: 10001;
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
+            animation: tutorialSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+        }
+        
+        .tutorial-welcome.show {
+            display: block;
+        }
+        
+        .tutorial-welcome .tutorial-title {
+            font-size: 28px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .tutorial-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
         }
     </style>
 </head>
 <body>
-    <!-- ═══════════════════════════════════════════════════════════════
-     TUTORIAL OVERLAY
-     ═══════════════════════════════════════════════════════════════ -->
-    <div class="tutorial-overlay" id="tutorialOverlay">
-        <div class="tutorial-modal" id="tutorialModal">
-            <!-- Progress indicator (alleen zichtbaar tijdens stappen, niet op welkomst) -->
-            <div class="tutorial-progress" id="tutorialProgress" style="display: none;">
-                <span id="tutorialStepNumber">1</span>/7
-            </div>
-            
-            <div class="tutorial-header">
-                <h2 class="tutorial-title" id="tutorialTitle">Welkom op Sound Viewer</h2>
-                <p class="tutorial-subtitle" id="tutorialSubtitle">
-                    Wil je een tutorial volgen om de webtool te ontdekken?
-                </p>
-            </div>
-            
-            <div class="tutorial-content" id="tutorialContent">
-                <!-- Content wordt dynamisch ingevuld -->
-            </div>
-            
-            <div class="tutorial-buttons" id="tutorialButtons">
-                <!-- Buttons worden dynamisch ingevuld -->
+        <!-- ═══════════════════════════════════════════════════════════════
+             TUTORIAL SYSTEM - SPOTLIGHT VERSION
+             ═══════════════════════════════════════════════════════════════ -->
+        
+        <!-- Dark overlay -->
+        <div class="tutorial-overlay" id="tutorialOverlay"></div>
+        
+        <!-- Spotlight rectangle -->
+        <div class="tutorial-spotlight" id="tutorialSpotlight"></div>
+        
+        <!-- Welkomst modal (center) -->
+        <div class="tutorial-welcome" id="tutorialWelcome">
+            <h2 class="tutorial-title">Welkom op Sound Viewer</h2>
+            <p class="tutorial-subtitle">Wil je een tutorial volgen om de webtool te ontdekken?</p>
+            <div class="tutorial-buttons">
+                <button class="tutorial-btn secondary" onclick="handleTutorialAction('skip')">Sla over</button>
+                <button class="tutorial-btn primary" onclick="handleTutorialAction('start')">Volg tutorial</button>
             </div>
         </div>
-    </div>
+        
+        <!-- Pop-up box (naast element) -->
+        <div class="tutorial-popup" id="tutorialPopup">
+            <div class="tutorial-progress" id="tutorialProgress">
+                <span id="tutorialStepNumber">1</span>/7
+            </div>
+            <h3 class="tutorial-title" id="tutorialTitle">Stap 1</h3>
+            <div class="tutorial-content" id="tutorialContent">Content hier</div>
+            <div class="tutorial-buttons" id="tutorialButtons">
+                <!-- Dynamisch ingevuld -->
+            </div>
+        </div>
     <div class="app-container">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -1013,7 +1072,7 @@
                 </div>
 
                 <!-- Current Time Display -->
-                <div class="control-section">
+                <div class="control-section" id="tutorialStep2">
                     <h3>Huidige Tijd</h3>
                     <div class="current-time" id="currentTime">--:--:--</div>
                     <div style="text-align:center; font-size:12px; color: var(--text-secondary); margin-bottom:4px;" id="currentDate">--/--/----</div>
@@ -1252,83 +1311,58 @@
         });
 
         // ═══════════════════════════════════════════════════════════════
-        // TUTORIAL SYSTEM
+        // TUTORIAL SYSTEM - SPOTLIGHT VERSION
         // ═══════════════════════════════════════════════════════════════
         
         const TUTORIAL_STEPS = [
             {
-                title: 'Welkom op Sound Viewer',
-                subtitle: 'Wil je een tutorial volgen om de webtool te ontdekken?',
-                content: '',
-                buttons: [
-                    { text: 'Sla over', class: 'secondary', action: 'skip' },
-                    { text: 'Volg tutorial', class: 'primary', action: 'start' }
-                ],
-                highlight: null,
-                isWelcome: true
-            },
-            {
+                id: 1,
                 title: 'Stap 1: Dag selecteren',
                 content: 'Kies een dag waarvan je de geluidsdata wil bekijken.',
-                highlight: 'tutorialStep1',
-                buttons: [
-                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
-                    { text: 'Volgende →', class: 'primary', action: 'next' }
-                ]
+                target: 'tutorialStep1',
+                position: 'right' // popup rechts van element
             },
             {
+                id: 2,
                 title: 'Stap 2: Tijdstip kiezen',
-                content: 'Gebruik de slider om een tijdstip te kiezen.',
-                highlight: 'tutorialStep2',
-                buttons: [
-                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
-                    { text: 'Volgende →', class: 'primary', action: 'next' }
-                ]
+                content: 'Bekijk de huidige tijd en gebruik de slider om een tijdstip te kiezen.',
+                target: 'tutorialStep2',
+                position: 'right'
             },
             {
+                id: 3,
                 title: 'Stap 3: Afspelen',
-                content: 'Gebruik deze knopjes om de rasters te laten afspelen alsof het een video zou zijn.',
-                highlight: 'tutorialStep3',
-                buttons: [
-                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
-                    { text: 'Volgende →', class: 'primary', action: 'next' }
-                ]
+                content: 'Gebruik deze knoppen om de rasters af te spelen alsof het een video is.',
+                target: 'tutorialStep3',
+                position: 'right'
             },
             {
+                id: 4,
                 title: 'Stap 4: Metadata',
                 content: 'Hier zie je de metadata van het raster dat gevisualiseerd wordt.',
-                highlight: 'tutorialStep4',
-                buttons: [
-                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
-                    { text: 'Volgende →', class: 'primary', action: 'next' }
-                ]
+                target: 'tutorialStep4',
+                position: 'right'
             },
             {
+                id: 5,
                 title: 'Stap 5: Kleurenschaal',
                 content: 'Pas hier de kleurenschaal aan.',
-                highlight: 'tutorialStep5',
-                buttons: [
-                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
-                    { text: 'Volgende →', class: 'primary', action: 'next' }
-                ]
+                target: 'tutorialStep5',
+                position: 'left' // popup links van legend
             },
             {
+                id: 6,
                 title: 'Stap 6: Kaart navigatie',
-                content: 'Zoom hier in en uit op de kaart. Je kan ook slepen om de kaart te verplaatsen.',
-                highlight: 'tutorialStep6',
-                buttons: [
-                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
-                    { text: 'Volgende →', class: 'primary', action: 'next' }
-                ]
+                content: 'Zoom in en uit op de kaart met deze knoppen.',
+                target: 'leaflet-zoom-controls', // Leaflet zoom knoppen
+                position: 'right'
             },
             {
+                id: 7,
                 title: 'Stap 7: Visualisatie',
                 content: 'Kies hier voor de 2D- of 2.5D-visualisatie.',
-                highlight: 'tutorialStep7',
-                buttons: [
-                    { text: 'Tutorial overslaan', class: 'secondary', action: 'skip' },
-                    { text: 'Afronden →', class: 'primary', action: 'finish' }
-                ]
+                target: 'tutorialStep7',
+                position: 'bottom' // popup onder de toggle
             }
         ];
         
@@ -1337,53 +1371,126 @@
         function initTutorial() {
             const tutorialCompleted = localStorage.getItem('soundViewerTutorialCompleted');
             if (!tutorialCompleted) {
-                showTutorialStep(0);
+                showWelcome();
             }
         }
         
+        function showWelcome() {
+            document.getElementById('tutorialOverlay').classList.add('show');
+            document.getElementById('tutorialWelcome').classList.add('show');
+        }
+        
+        function hideWelcome() {
+            document.getElementById('tutorialWelcome').classList.remove('show');
+        }
+        
         function showTutorialStep(stepIndex) {
+            if (stepIndex >= TUTORIAL_STEPS.length) {
+                closeTutorial(true);
+                showSuccess('Tutorial afgerond! Je kan nu de tool gebruiken.');
+                return;
+            }
+        
             const step = TUTORIAL_STEPS[stepIndex];
-            const overlay = document.getElementById('tutorialOverlay');
-            const title = document.getElementById('tutorialTitle');
-            const subtitle = document.getElementById('tutorialSubtitle');
-            const content = document.getElementById('tutorialContent');
-            const buttons = document.getElementById('tutorialButtons');
-            const progress = document.getElementById('tutorialProgress');
-            const stepNumber = document.getElementById('tutorialStepNumber');
-        
-            clearTutorialHighlights();
-        
-            title.textContent = step.title;
-            
-            if (step.isWelcome) {
-                subtitle.style.display = '';
-                subtitle.textContent = step.subtitle;
-                content.style.display = 'none';
-                progress.style.display = 'none';
-            } else {
-                subtitle.style.display = 'none';
-                content.style.display = '';
-                content.textContent = step.content;
-                progress.style.display = '';
-                stepNumber.textContent = stepIndex;
-            }
-        
-            buttons.innerHTML = '';
-            step.buttons.forEach(btn => {
-                const button = document.createElement('button');
-                button.className = `tutorial-btn ${btn.class}`;
-                button.textContent = btn.text;
-                button.onclick = () => handleTutorialAction(btn.action);
-                buttons.appendChild(button);
-            });
-        
-            overlay.classList.add('show');
-        
-            if (step.highlight) {
-                setTimeout(() => highlightElement(step.highlight), 100);
-            }
-        
             currentTutorialStep = stepIndex;
+        
+            // Target element vinden
+            let targetEl = document.getElementById(step.target);
+            
+            // Special case: Leaflet zoom controls (hebben geen ID)
+            if (step.target === 'leaflet-zoom-controls') {
+                targetEl = document.querySelector('.leaflet-control-zoom');
+            }
+        
+            if (!targetEl) {
+                console.warn('Tutorial target not found:', step.target);
+                showTutorialStep(stepIndex + 1); // Skip naar volgende
+                return;
+            }
+        
+            // Positioneer spotlight
+            positionSpotlight(targetEl);
+        
+            // Positioneer popup
+            positionPopup(targetEl, step.position);
+        
+            // Update popup content
+            document.getElementById('tutorialStepNumber').textContent = step.id;
+            document.getElementById('tutorialTitle').textContent = step.title;
+            document.getElementById('tutorialContent').textContent = step.content;
+        
+            // Update buttons
+            const buttonsContainer = document.getElementById('tutorialButtons');
+            buttonsContainer.innerHTML = `
+                <button class="tutorial-btn secondary" onclick="handleTutorialAction('skip')">Tutorial overslaan</button>
+                <button class="tutorial-btn primary" onclick="handleTutorialAction('next')">
+                    ${stepIndex === TUTORIAL_STEPS.length - 1 ? 'Afronden →' : 'Volgende →'}
+                </button>
+            `;
+        
+            // Show elements
+            document.getElementById('tutorialOverlay').classList.add('show');
+            document.getElementById('tutorialSpotlight').style.display = 'block';
+            document.getElementById('tutorialPopup').classList.add('show');
+        
+            // Scroll element into view
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function positionSpotlight(element) {
+            const rect = element.getBoundingClientRect();
+            const spotlight = document.getElementById('tutorialSpotlight');
+            
+            const padding = 8;
+            spotlight.style.top = (rect.top - padding) + 'px';
+            spotlight.style.left = (rect.left - padding) + 'px';
+            spotlight.style.width = (rect.width + padding * 2) + 'px';
+            spotlight.style.height = (rect.height + padding * 2) + 'px';
+        }
+        
+        function positionPopup(element, position) {
+            const rect = element.getBoundingClientRect();
+            const popup = document.getElementById('tutorialPopup');
+            const popupWidth = 380;
+            const gap = 24;
+        
+            // Remove all arrow classes
+            popup.className = 'tutorial-popup show';
+        
+            let top, left;
+        
+            switch(position) {
+                case 'right':
+                    top = rect.top;
+                    left = rect.right + gap;
+                    popup.classList.add('arrow-left');
+                    break;
+                case 'left':
+                    top = rect.top;
+                    left = rect.left - popupWidth - gap;
+                    popup.classList.add('arrow-right');
+                    break;
+                case 'bottom':
+                    top = rect.bottom + gap;
+                    left = rect.left + (rect.width / 2) - (popupWidth / 2);
+                    popup.classList.add('arrow-top');
+                    break;
+                case 'top':
+                    top = rect.top - gap - 200; // Estimate popup height
+                    left = rect.left + (rect.width / 2) - (popupWidth / 2);
+                    popup.classList.add('arrow-bottom');
+                    break;
+            }
+        
+            // Keep popup in viewport
+            const maxLeft = window.innerWidth - popupWidth - 20;
+            const maxTop = window.innerHeight - 300;
+            
+            left = Math.max(20, Math.min(left, maxLeft));
+            top = Math.max(20, Math.min(top, maxTop));
+        
+            popup.style.top = top + 'px';
+            popup.style.left = left + 'px';
         }
         
         function handleTutorialAction(action) {
@@ -1392,43 +1499,40 @@
                     closeTutorial(true);
                     break;
                 case 'start':
-                    showTutorialStep(1);
+                    hideWelcome();
+                    showTutorialStep(0);
                     break;
                 case 'next':
-                    if (currentTutorialStep < TUTORIAL_STEPS.length - 1) {
-                        showTutorialStep(currentTutorialStep + 1);
-                    }
-                    break;
-                case 'finish':
-                    closeTutorial(true);
-                    showSuccess('Tutorial afgerond! Je kan nu de tool gebruiken.');
+                    showTutorialStep(currentTutorialStep + 1);
                     break;
             }
         }
         
         function closeTutorial(markCompleted = false) {
-            const overlay = document.getElementById('tutorialOverlay');
-            overlay.classList.remove('show');
-            clearTutorialHighlights();
+            document.getElementById('tutorialOverlay').classList.remove('show');
+            document.getElementById('tutorialWelcome').classList.remove('show');
+            document.getElementById('tutorialPopup').classList.remove('show');
+            document.getElementById('tutorialSpotlight').style.display = 'none';
             
             if (markCompleted) {
                 localStorage.setItem('soundViewerTutorialCompleted', 'true');
             }
         }
         
-        function highlightElement(elementId) {
-            const element = document.getElementById(elementId) || document.querySelector(`.${elementId}`);
-            if (element) {
-                element.classList.add('tutorial-highlight');
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Update spotlight position on window resize
+        window.addEventListener('resize', () => {
+            if (document.getElementById('tutorialPopup').classList.contains('show')) {
+                const step = TUTORIAL_STEPS[currentTutorialStep];
+                let targetEl = document.getElementById(step.target);
+                if (step.target === 'leaflet-zoom-controls') {
+                    targetEl = document.querySelector('.leaflet-control-zoom');
+                }
+                if (targetEl) {
+                    positionSpotlight(targetEl);
+                    positionPopup(targetEl, step.position);
+                }
             }
-        }
-        
-        function clearTutorialHighlights() {
-            document.querySelectorAll('.tutorial-highlight').forEach(el => {
-                el.classList.remove('tutorial-highlight');
-            });
-        }
+        });
         
         // ═══════════════════════════════════════════════════════════════
         // CONFIGURATIE — pas dit aan na het uploaden naar Cloudflare R2
